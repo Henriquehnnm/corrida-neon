@@ -673,16 +673,17 @@
     let carY = areaHeight - carHeight - 30;
     let carSpeed = 7;
     let carSpeedTarget = 7;
-    // Parâmetros de física levemente realista
-    let acceleration = 0.18; // aceleração
-    let deceleration = 0.22; // frenagem
-    let grip = 0.18; // aderência base
-    let driftAmount = 0.11; // drift
+    // Parâmetros de física mais realistas
+    let acceleration = 0.13; // aceleração mais suave
+    let deceleration = 0.09; // frenagem menos eficiente
+    let grip = 0.11; // aderência base reduzida
+    let driftAmount = 0.17; // drift mais acentuado
     let maxSpeed = 29.2; // 350 km/h
     let minSpeed = 2.5;
     let maxVX = 7.5;
     let rollingSpeed = 4;
-    let driftGrip = 0.06; // aderência durante drift
+    let driftGrip = 0.05; // aderência durante drift
+    let lateralInertia = 0.93; // inércia lateral (quanto menor, mais "pesado" para virar)
     let collisionBounce = 0.5; // rebate ao colidir
     let collisionSlow = 0.7; // desacelera ao colidir
     let carVX = 0;
@@ -1164,27 +1165,16 @@
           opp.x + tolerance < carX + carWidth
         ) {
           if (!opp._collided) {
-            if (opp.type === 'uninho') {
-              // Colidiu com o Uninho: perde uma vida (não Game Over instantâneo)
-              carSpeed *= 0.6;
-              carVX += (opp.x < carX ? 1.2 : -1.2);
-              lives--;
-              opp._collided = true;
-              updateLivesHUD();
-              showExplosion();
-              if (lives <= 0) {
-                endGame();
-              }
-            } else {
-              carSpeed *= 0.6;
-              carVX += (opp.x < carX ? 1.2 : -1.2);
-              lives--;
-              opp._collided = true;
-              updateLivesHUD();
-              showExplosion();
-              if (lives <= 0) {
-                endGame();
-              }
+            // Rebote proporcional à velocidade
+            let impact = Math.max(1, carSpeed / maxSpeed);
+            carSpeed *= 0.5 + 0.2 * (1 - impact); // maior perda em alta velocidade
+            carVX += (opp.x < carX ? 1.2 : -1.2) * impact;
+            lives--;
+            opp._collided = true;
+            updateLivesHUD();
+            showExplosion();
+            if (lives <= 0) {
+              endGame();
             }
           }
         }
@@ -1254,29 +1244,36 @@
         carSpeedTarget = rollingSpeed;
       }
 
-      // Aceleração/frenagem levemente realista
+      // Aceleração/frenagem mais realista
       if (carSpeed < carSpeedTarget) {
-        carSpeed += acceleration * dt * (1 - carSpeed/maxSpeed);
+        // Aceleração depende da velocidade atual (mais lenta em alta velocidade)
+        let acc = acceleration * (1 - carSpeed / maxSpeed) * dt;
+        carSpeed += acc;
         if (carSpeed > carSpeedTarget) carSpeed = carSpeedTarget;
       } else if (carSpeed > carSpeedTarget) {
-        carSpeed -= deceleration * dt * (1 + carSpeed/maxSpeed*0.7);
+        // Frenagem menos eficiente
+        let dec = deceleration * (1 + carSpeed / maxSpeed * 0.7) * dt;
+        carSpeed -= dec;
         if (carSpeed < carSpeedTarget) carSpeed = carSpeedTarget;
       }
 
-      // Drift e aderência levemente realistas
+      // Drift e aderência mais realistas
       let desiredVX = 0;
       if (keys['a']) desiredVX -= maxVX;
       if (keys['d']) desiredVX += maxVX;
       // Aderência diminui em alta velocidade
-      let currentGrip = grip * (carSpeed < 14 ? 1.2 : 0.7);
-      carVX += (desiredVX - carVX) * currentGrip * dt;
+      let currentGrip = grip * (carSpeed < 14 ? 1.2 : 0.5);
       // Drift mais fácil em alta velocidade
       if ((keys['a'] || keys['d']) && carSpeed > 12) {
-        carVX += driftAmount * (desiredVX > 0 ? 1 : -1) * dt * (carSpeed/maxSpeed);
+        carVX += driftAmount * (desiredVX > 0 ? 1 : -1) * dt * (carSpeed / maxSpeed);
+        currentGrip *= 0.7;
       }
+      // Inércia lateral
+      carVX += (desiredVX - carVX) * currentGrip * dt;
+      carVX *= lateralInertia;
       // Recuperação lateral suave
       if (!keys['a'] && !keys['d']) {
-        carVX *= (1 - 0.13 * dt);
+        carVX *= (1 - 0.09 * dt);
         if (Math.abs(carVX) < 0.1) carVX = 0;
       }
       // Limites laterais
@@ -1285,13 +1282,27 @@
       carX += carVX * dt;
       if (carX < 0) {
         carX = 0;
-        carVX = 1.5;
+        carVX = Math.abs(carVX) * 0.5;
         carSpeed *= 0.7;
+        // Perde uma vida ao bater na lateral
+        lives--;
+        updateLivesHUD();
+        showExplosion();
+        if (lives <= 0) {
+          endGame();
+        }
       }
       if (carX > areaWidth - carWidth) {
         carX = areaWidth - carWidth;
-        carVX = -1.5;
+        carVX = -Math.abs(carVX) * 0.5;
         carSpeed *= 0.7;
+        // Perde uma vida ao bater na lateral
+        lives--;
+        updateLivesHUD();
+        showExplosion();
+        if (lives <= 0) {
+          endGame();
+        }
       }
       setCarPosition();
       animationId = requestAnimationFrame(gameLoop);
