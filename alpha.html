@@ -688,6 +688,8 @@
     let collisionSlow = 0.7; // desacelera ao colidir
     let carVX = 0;
     let carVXTarget = 0;
+    // Controle de imunidade após colisão lateral
+    let lateralCollisionCooldown = false;
     let opponents = [];
     let roadLines = [];
     let windLines = [];
@@ -1284,24 +1286,32 @@
         carX = 0;
         carVX = Math.abs(carVX) * 0.5;
         carSpeed *= 0.7;
-        // Perde uma vida ao bater na lateral
-        lives--;
-        updateLivesHUD();
-        showExplosion();
-        if (lives <= 0) {
-          endGame();
+        // Perder vida ao bater na lateral
+        if (!lateralCollisionCooldown) {
+          lives--;
+          updateLivesHUD();
+          showExplosion();
+          lateralCollisionCooldown = true;
+          if (lives <= 0) {
+            endGame();
+          }
+          setTimeout(() => { lateralCollisionCooldown = false; }, 1000);
         }
       }
       if (carX > areaWidth - carWidth) {
         carX = areaWidth - carWidth;
         carVX = -Math.abs(carVX) * 0.5;
         carSpeed *= 0.7;
-        // Perde uma vida ao bater na lateral
-        lives--;
-        updateLivesHUD();
-        showExplosion();
-        if (lives <= 0) {
-          endGame();
+        // Perder vida ao bater na lateral
+        if (!lateralCollisionCooldown) {
+          lives--;
+          updateLivesHUD();
+          showExplosion();
+          lateralCollisionCooldown = true;
+          if (lives <= 0) {
+            endGame();
+          }
+          setTimeout(() => { lateralCollisionCooldown = false; }, 1000);
         }
       }
       setCarPosition();
