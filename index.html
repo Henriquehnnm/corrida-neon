@@ -1137,6 +1137,81 @@
     }
 
     function updateOpponents(dt) {
+      // --- NOVO: Colisão entre adversários ---
+      // Cooldown de colisão para adversários
+      if (!window._opponentCollisionCooldowns) window._opponentCollisionCooldowns = new WeakMap();
+      // Checar colisão entre todos os pares de adversários
+      for (let i = 0; i < opponents.length; i++) {
+        for (let j = i + 1; j < opponents.length; j++) {
+          const a = opponents[i];
+          const b = opponents[j];
+          // Cooldown para evitar múltiplas colisões seguidas
+          const now = performance.now();
+          const cooldownA = window._opponentCollisionCooldowns.get(a.el) || 0;
+          const cooldownB = window._opponentCollisionCooldowns.get(b.el) || 0;
+          // Tolerância para colisão
+          const tol = 8;
+          if (
+            a.y + a.height - tol > b.y &&
+            a.y + tol < b.y + b.height &&
+            a.x + a.width - tol > b.x &&
+            a.x + tol < b.x + b.width
+          ) {
+            // Se não estiver em cooldown
+            if (now > cooldownA && now > cooldownB) {
+              // Desacelerar ambos
+              a.speed *= 0.7;
+              b.speed *= 0.7;
+              // Empurrar lateralmente se possível
+              if (a.canChangeLane && b.canChangeLane) {
+                if (a.x < b.x) {
+                  a.laneTarget = Math.max(10, a.x - 30);
+                  b.laneTarget = Math.min(areaWidth - b.width - 10, b.x + 30);
+                } else {
+                  a.laneTarget = Math.min(areaWidth - a.width - 10, a.x + 30);
+                  b.laneTarget = Math.max(10, b.x - 30);
+                }
+                a.laneChangeTimer = 60;
+                b.laneChangeTimer = 60;
+              } else if (a.canChangeLane) {
+                a.laneTarget = a.x + (a.x < b.x ? -30 : 30);
+                a.laneChangeTimer = 60;
+              } else if (b.canChangeLane) {
+                b.laneTarget = b.x + (b.x < a.x ? -30 : 30);
+                b.laneChangeTimer = 60;
+              }
+              // Cooldown de 0.5s
+              window._opponentCollisionCooldowns.set(a.el, now + 500);
+              window._opponentCollisionCooldowns.set(b.el, now + 500);
+            }
+          } else {
+            // Se estiverem muito próximos, tentar evitar colisão
+            const closeY = Math.abs((a.y + a.height/2) - (b.y + b.height/2)) < (a.height/2 + b.height/2 + 18);
+            const closeX = Math.abs((a.x + a.width/2) - (b.x + b.width/2)) < (a.width/2 + b.width/2 + 10);
+            if (closeY && closeX) {
+              // Tentar afastar lateralmente
+              if (a.canChangeLane && b.canChangeLane) {
+                if (a.x < b.x) {
+                  a.laneTarget = Math.max(10, a.x - 20);
+                  b.laneTarget = Math.min(areaWidth - b.width - 10, b.x + 20);
+                } else {
+                  a.laneTarget = Math.min(areaWidth - a.width - 10, a.x + 20);
+                  b.laneTarget = Math.max(10, b.x - 20);
+                }
+                a.laneChangeTimer = 40;
+                b.laneChangeTimer = 40;
+              } else if (a.canChangeLane) {
+                a.laneTarget = a.x + (a.x < b.x ? -20 : 20);
+                a.laneChangeTimer = 40;
+              } else if (b.canChangeLane) {
+                b.laneTarget = b.x + (b.x < a.x ? -20 : 20);
+                b.laneChangeTimer = 40;
+              }
+            }
+          }
+        }
+      }
+      // --- FIM NOVO ---
       for (let i = opponents.length - 1; i >= 0; i--) {
         const opp = opponents[i];
         // IA: troca de faixa
@@ -1152,7 +1227,40 @@
             opp.laneChangeTimer = Math.random() * 60 + 30;
           }
         }
-        opp.y += opp.speed * dt;
+        // --- NOVO: Impedir sobreposição vertical entre adversários ---
+        let nextY = opp.y + opp.speed * dt;
+        let blocked = false;
+        for (let j = 0; j < opponents.length; j++) {
+          if (i === j) continue;
+          const other = opponents[j];
+          // Checar se haveria sobreposição na próxima posição
+          const tol = 8;
+          if (
+            nextY + opp.height - tol > other.y &&
+            nextY + tol < other.y + other.height &&
+            opp.x + opp.width - tol > other.x &&
+            opp.x + tol < other.x + other.width
+          ) {
+            // Bloquear avanço, só pode ir até encostar
+            if (opp.y < other.y) {
+              nextY = other.y - opp.height + tol;
+            } else {
+              nextY = other.y + other.height - tol;
+            }
+            blocked = true;
+            // Tentar desviar lateralmente se possível
+            if (opp.canChangeLane) {
+              if (opp.x + opp.width < areaWidth - 20) {
+                opp.laneTarget = opp.x + 30;
+              } else if (opp.x > 20) {
+                opp.laneTarget = opp.x - 30;
+              }
+              opp.laneChangeTimer = 40;
+            }
+            break;
+          }
+        }
+        opp.y = nextY;
         opp.el.style.top = opp.y + 'px';
         opp.el.style.left = opp.x + 'px';
         // Ajustar tamanho visual
@@ -1402,7 +1510,12 @@
     }
 
     document.addEventListener('keydown', (e) => {
-      const key = e.key.toLowerCase();
+      let key = e.key.toLowerCase();
+      // Mapear setas para WASD
+      if (e.key === 'ArrowUp') key = 'w';
+      if (e.key === 'ArrowDown') key = 's';
+      if (e.key === 'ArrowLeft') key = 'a';
+      if (e.key === 'ArrowRight') key = 'd';
       keys[key] = true;
       if (!gameRunning && startScreen.style.display !== 'none') {
         startGame();
@@ -1420,7 +1533,12 @@
       }
     });
     document.addEventListener('keyup', (e) => {
-      const key = e.key.toLowerCase();
+      let key = e.key.toLowerCase();
+      // Mapear setas para WASD
+      if (e.key === 'ArrowUp') key = 'w';
+      if (e.key === 'ArrowDown') key = 's';
+      if (e.key === 'ArrowLeft') key = 'a';
+      if (e.key === 'ArrowRight') key = 'd';
       keys[key] = false;
       // Ao soltar W, desacelerar até rolagem
       if (key === 'w') {
@@ -1435,7 +1553,7 @@
     // 1. Tela de início minimalista
     startScreen.innerHTML = `
       <div style="font-size:1.6em;font-weight:bold;letter-spacing:2px;margin-bottom:14px;">Corrida Neon</div>
-      <div style="font-size:1em;margin-bottom:22px;opacity:0.8;">Aperte <b>Jogar</b> ou <b>W</b> para começar<br><span style='font-size:0.9em;opacity:0.7;'>Controles: WASD</span></div>
+      <div style="font-size:1em;margin-bottom:22px;opacity:0.8;">Aperte <b>Jogar</b> ou <b>W</b> para começar<br><span style='font-size:0.9em;opacity:0.7;'>Controles: <b>WASD</b> <span style='font-size:1.1em;'>ou</span> <b>Setas do Teclado</b></span></div>
       <button id="startBtn" style="font-size:1em;padding:10px 32px;border-radius:10px;background:#00eaff;color:#181c28;border:none;box-shadow:0 2px 12px #00eaff33;cursor:pointer;font-family:'Orbitron',Arial,sans-serif;font-weight:bold;">Jogar</button>
     `;
     startScreen.style.background = 'rgba(10,16,24,0.92)';
