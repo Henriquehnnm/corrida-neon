@@ -1,0 +1,1711 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Corrida de Carros</title>
+  <style>
+    :root {
+      --theme-primary: #00eaff;
+      --theme-secondary: #1976d2;
+      --theme-highlight: #ffd600;
+      --theme-bg: #181c28;
+      --theme-btn-text: #181c28;
+      --theme-btn-bg: #00eaff;
+      --theme-btn-border: #00eaff44;
+      --theme-btn-hover-bg: #00eaff;
+      --theme-btn-hover-text: #181c28;
+      --theme-shadow: #00eaff22;
+    }
+    body {
+      background: #000;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+    }
+    /* --- NOVO HUD E BARRAS --- */
+    #main-hud {
+      width: 100vw;
+      max-width: 100vw;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 200;
+      pointer-events: none;
+      padding: 18px 0 0 0;
+      gap: 32px;
+    }
+    .hud-block {
+      background: rgba(20,30,40,0.75);
+      border-radius: 14px;
+      box-shadow: 0 2px 16px var(--theme-shadow);
+      border: 2px solid #222c;
+      color: #fff;
+      font-size: 1.2em;
+      padding: 10px 28px;
+      margin: 0 8px;
+      pointer-events: auto;
+      min-width: 120px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-family: 'Orbitron', 'Arial', sans-serif;
+    }
+    #level {
+      font-size: 1.1em;
+      color: var(--theme-highlight);
+      margin-bottom: 2px;
+      letter-spacing: 1px;
+    }
+    #overtakesHUD {
+      font-size: 1.1em;
+      color: var(--theme-primary);
+      margin-top: 2px;
+      letter-spacing: 1px;
+    }
+    .bar {
+      width: 100px;
+      height: 12px;
+      background: #222c;
+      border-radius: 8px;
+      margin: 6px 0 0 0;
+      border: 1.5px solid var(--theme-primary);
+      overflow: hidden;
+      box-shadow: 0 2px 8px var(--theme-shadow);
+      position: relative;
+    }
+    .bar-inner {
+      height: 100%;
+      border-radius: 8px;
+      background: linear-gradient(90deg, var(--theme-primary) 60%, var(--theme-highlight) 100%);
+      transition: width 0.2s;
+    }
+    .bar-inner.shield {
+      background: linear-gradient(90deg, #fff 60%, var(--theme-primary) 100%);
+      box-shadow: 0 0 8px #fff8;
+    }
+    /* --- MINI-MAPA --- */
+    #minimap {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      width: 60px;
+      height: 180px;
+      background: rgba(20,30,40,0.8);
+      border-radius: 14px;
+      border: 2px solid #222c;
+      box-shadow: 0 2px 12px var(--theme-shadow);
+      z-index: 100;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .minimap-track {
+      position: absolute;
+      left: 50%;
+      top: 10px;
+      width: 16px;
+      height: 160px;
+      background: linear-gradient(180deg, var(--theme-bg) 60%, var(--theme-primary) 100%);
+      border-radius: 8px;
+      transform: translateX(-50%);
+      box-shadow: 0 0 8px var(--theme-shadow);
+    }
+    .minimap-dot {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--theme-primary);
+      border: 2px solid #fff;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2;
+      box-shadow: 0 0 8px var(--theme-shadow);
+    }
+    .minimap-dot.opponent {
+      background: #ff1744;
+      border: 2px solid #fff;
+      box-shadow: 0 0 8px #ff174488;
+    }
+    .minimap-dot.shield {
+      background: #fff;
+      border: 2px solid var(--theme-primary);
+      box-shadow: 0 0 8px #fff8;
+    }
+    /* --- BOTÕES --- */
+    #hud-buttons {
+      position: static;
+      margin: 18px auto 0 auto;
+      display: flex;
+      gap: 18px;
+      justify-content: center;
+    }
+    .hud-btn {
+      font-size: 1.1em;
+      background: var(--theme-bg);
+      color: var(--theme-primary);
+      border: none;
+      border-radius: 8px;
+      padding: 8px 22px;
+      font-family: 'Orbitron', 'Arial', sans-serif;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 2px 8px var(--theme-shadow);
+      transition: background 0.2s, color 0.2s;
+      border: 2px solid var(--theme-btn-border);
+    }
+    .hud-btn:hover {
+      background: var(--theme-btn-hover-bg);
+      color: var(--theme-btn-hover-text);
+    }
+    #hud-velocidade {
+      position: fixed;
+      left: 24px;
+      bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      z-index: 100;
+      pointer-events: none;
+      user-select: none;
+    }
+    #analogSpeedometer {
+      width: 160px;
+      height: 160px;
+      margin-bottom: 2px;
+      background: none;
+      display: block;
+      filter: drop-shadow(0 0 16px var(--theme-primary)) blur(0.5px);
+      border-radius: 50%;
+      box-shadow: 0 0 16px var(--theme-shadow) inset;
+      background: radial-gradient(ellipse at 60% 40%, #fff2 0%, var(--theme-shadow) 80%, transparent 100%);
+    }
+    #analogSpeedometer text.speed-value {
+      display: none;
+    }
+    #digitalSpeedometer {
+      font-family: 'Orbitron', 'Consolas', 'Arial', sans-serif;
+      font-size: 2em;
+      font-weight: bold;
+      color: var(--theme-primary);
+      text-shadow: 0 2px 16px var(--theme-primary), 0 2px 8px #000a;
+      background: linear-gradient(90deg, #000 60%, var(--theme-shadow) 100%);
+      border-radius: 12px;
+      border: 2px solid var(--theme-primary);
+      padding: 4px 24px 4px 24px;
+      margin-left: 8px;
+      margin-top: 0;
+      margin-bottom: 0;
+      letter-spacing: 2px;
+      box-shadow: 0 2px 12px var(--theme-shadow);
+      min-width: 80px;
+      text-align: center;
+      display: block;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+      filter: blur(0.2px);
+    }
+    #gameArea {
+      position: relative;
+      width: 100vw;
+      max-width: 400px;
+      height: 70vw;
+      max-height: 600px;
+      min-width: 220px;
+      min-height: 320px;
+      background: linear-gradient(180deg, #000 60%, #000 100%);
+      overflow: hidden;
+      border-radius: 18px;
+      box-shadow: 0 0 32px #000b, 0 8px 32px var(--theme-shadow);
+      border: 3px solid var(--theme-primary);
+      margin-top: 70px;
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      transition: width 0.2s, height 0.2s;
+    }
+    .road-texture {
+      position: absolute;
+      left: 0; top: 0; width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      background: repeating-linear-gradient(90deg, #000 0 12px, #000 12px 36px);
+      opacity: 0.18;
+    }
+    .side-shadow {
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 32px;
+      z-index: 2;
+      pointer-events: none;
+      background: linear-gradient(90deg, #000 60%, transparent 100%);
+    }
+    .side-shadow.right {
+      right: 0;
+      transform: scaleX(-1);
+      background: linear-gradient(270deg, #000 60%, transparent 100%);
+    }
+    .side-shadow.left {
+      left: 0;
+    }
+    /* Removido .road-line (linhas centrais) */
+    .pass-line {
+      position: absolute;
+      width: 10px;
+      height: 36px;
+      background: linear-gradient(180deg, var(--theme-primary) 60%, #000 100%);
+      opacity: 0.8;
+      z-index: 2;
+      border-radius: 6px;
+      box-shadow: 0 0 8px var(--theme-shadow);
+    }
+    /* --- CARROS --- */
+    .car, .opponent {
+      filter: drop-shadow(0 8px 16px #000b) drop-shadow(0 0 8px #00eaff33);
+      transition: filter 0.2s;
+    }
+    .car.blur, .opponent.blur {
+      filter: blur(2px) drop-shadow(0 8px 24px #00eaffcc);
+    }
+    .car-svg, .opponent-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .car {
+      position: absolute;
+      width: 40px;
+      height: 70px;
+      z-index: 3;
+      transition: transform 0.15s cubic-bezier(.4,1.4,.6,1);
+    }
+    .car-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .opponent {
+      position: absolute;
+      width: 40px;
+      height: 70px;
+      z-index: 2;
+    }
+    .wind {
+      position: absolute;
+      width: 2px;
+      height: 40px;
+      background: linear-gradient(to bottom, #fff8 60%, transparent 100%);
+      opacity: 0.7;
+      z-index: 10;
+      pointer-events: none;
+      border-radius: 2px;
+      animation: wind-move 0.5s linear infinite;
+    }
+    @keyframes wind-move {
+      0% { top: 0; opacity: 0.7; }
+      100% { top: 600px; opacity: 0; }
+    }
+    .turbo {
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      z-index: 5;
+      pointer-events: none;
+      animation: turbo-float 1.2s infinite ease-in-out alternate;
+    }
+    @keyframes turbo-float {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-10px); }
+    }
+    .turbo-effect {
+      position: absolute;
+      left: 0; right: 0;
+      top: 0; bottom: 0;
+      pointer-events: none;
+      z-index: 100;
+      background: radial-gradient(ellipse at center, #fff8 0%, transparent 80%);
+      animation: turbo-zoom 0.5s linear;
+    }
+    @keyframes turbo-zoom {
+      0% { opacity: 0.7; }
+      100% { opacity: 0; }
+    }
+    .overtake-effect {
+      position: absolute;
+      color: var(--theme-highlight);
+      font-size: 1.1em;
+      font-weight: bold;
+      pointer-events: none;
+      text-shadow: 0 2px 8px #000a;
+      animation: overtake-pop 0.7s cubic-bezier(.4,1.4,.6,1) forwards;
+      z-index: 20;
+    }
+    @keyframes overtake-pop {
+      0% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-40px); }
+    }
+    .pass-line {
+      position: absolute;
+      width: 8px;
+      height: 32px;
+      background: #fff;
+      opacity: 0.7;
+      z-index: 1;
+      border-radius: 4px;
+    }
+    /* --- HUD --- */
+    #score, #highScore {
+      position: absolute;
+      top: 10px;
+      color: #fff;
+      font-size: 1.3em;
+      background: rgba(0,0,0,0.7);
+      padding: 6px 18px;
+      border-radius: 12px;
+      z-index: 10;
+      box-shadow: 0 2px 12px var(--theme-shadow);
+      border: 2px solid var(--theme-primary);
+      text-shadow: 0 2px 8px #000a;
+    }
+    #score { left: 16px; }
+    #highScore { right: 16px; }
+    #gameOver, #startScreen {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #000c;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 2em;
+      z-index: 10;
+      display: none;
+    }
+    #gameOver button, #startScreen button {
+      margin-top: 20px;
+      font-size: 1em;
+      padding: 10px 30px;
+      border: none;
+      border-radius: 8px;
+      background: #2196f3;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    #gameOver button:hover, #startScreen button:hover {
+      background: #1769aa;
+    }
+    /* --- BARRA DE VELOCIDADE VERTICAL --- */
+    #verticalSpeedBar {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      width: 48px;
+      height: 180px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 120;
+      pointer-events: none;
+      user-select: none;
+    }
+    .vertical-bar-bg {
+      width: 28px;
+      height: 150px;
+      background: linear-gradient(180deg, #222c 60%, var(--theme-bg) 100%);
+      border-radius: 18px;
+      border: 2.5px solid var(--theme-primary);
+      box-shadow: 0 2px 16px var(--theme-shadow), 0 0 0 4px #000a inset;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .vertical-bar-inner {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 0%;
+      background: linear-gradient(0deg, var(--theme-primary) 60%, var(--theme-highlight) 100%);
+      box-shadow: 0 0 16px var(--theme-primary), 0 0 24px var(--theme-highlight) inset;
+      border-radius: 18px 18px 8px 8px;
+      transition: height 0.18s cubic-bezier(.4,1.4,.6,1);
+      filter: blur(0.2px);
+    }
+    .vertical-bar-label {
+      color: #fff;
+      font-family: 'Orbitron', Arial, sans-serif;
+      font-size: 1em;
+      font-weight: bold;
+      text-shadow: 0 2px 8px #000a, 0 2px 12px var(--theme-primary);
+      margin-top: 2px;
+      letter-spacing: 1px;
+      pointer-events: none;
+      user-select: none;
+    }
+    /* Caixa de vidas ao lado do velocímetro */
+    #hud-velocidade {
+      position: fixed;
+      left: 24px;
+      bottom: 24px;
+      display: flex;
+      flex-direction: row;
+      align-items: flex-end;
+      z-index: 100;
+      pointer-events: none;
+      user-select: none;
+      gap: 18px;
+    }
+    .lives-block {
+      min-width: 80px;
+      min-height: 38px;
+      background: rgba(20,30,40,0.75);
+      border-radius: 14px;
+      box-shadow: 0 2px 16px var(--theme-shadow);
+      border: 2px solid #222c;
+      color: #fff;
+      font-size: 1.2em;
+      padding: 10px 18px;
+      margin: 0 0 0 0;
+      pointer-events: auto;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-family: 'Orbitron', 'Arial', sans-serif;
+      font-weight: bold;
+      justify-content: center;
+      letter-spacing: 1px;
+      transition: color 0.2s, text-shadow 0.2s;
+    }
+    .opponent .car-svg {
+      transform: scaleY(-1);
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="main-hud">
+    <div class="hud-block" id="score">Distância: 0 m</div>
+    <div class="hud-block" id="highScore">Recorde: 0 m</div>
+  </div>
+  <div id="gameArea">
+    <div class="car" id="playerCar">
+      <!-- SVG do carro do jogador, esportivo futurista -->
+      <svg class="car-svg" viewBox="0 0 48 80">
+        <defs>
+          <radialGradient id="carBodyGradient" cx="50%" cy="30%" r="80%">
+            <stop offset="0%" stop-color="#00eaff"/>
+            <stop offset="100%" stop-color="#1976d2"/>
+          </radialGradient>
+          <linearGradient id="carShadow" x1="0" y1="1" x2="0" y2="0">
+            <stop offset="0%" stop-color="#000a"/>
+            <stop offset="100%" stop-color="transparent"/>
+          </linearGradient>
+        </defs>
+        <!-- Sombra -->
+        <ellipse cx="24" cy="76" rx="16" ry="7" fill="url(#carShadow)"/>
+        <!-- Pneus finos e rodas iluminadas -->
+        <ellipse cx="12" cy="68" rx="5" ry="7" fill="#222" stroke="#00eaff" stroke-width="2"/>
+        <ellipse cx="36" cy="68" rx="5" ry="7" fill="#222" stroke="#00eaff" stroke-width="2"/>
+        <ellipse cx="12" cy="22" rx="5" ry="7" fill="#222" stroke="#00eaff" stroke-width="2"/>
+        <ellipse cx="36" cy="22" rx="5" ry="7" fill="#222" stroke="#00eaff" stroke-width="2"/>
+        <!-- Corpo do carro -->
+        <rect x="8" y="18" width="32" height="44" rx="14" fill="url(#carBodyGradient)" stroke="#fff" stroke-width="2"/>
+        <!-- Para-choque -->
+        <rect x="6" y="60" width="36" height="8" rx="4" fill="#00eaff"/>
+        <!-- Detalhe neon central -->
+        <rect x="20" y="18" width="8" height="44" rx="4" fill="#fff" opacity="0.18"/>
+        <!-- Faróis -->
+        <ellipse cx="14" cy="16" rx="3" ry="2" fill="#fff"/>
+        <ellipse cx="34" cy="16" rx="3" ry="2" fill="#fff"/>
+        <!-- Vidro -->
+        <rect x="16" y="26" width="16" height="16" rx="6" fill="#b3e5fc" opacity="0.8"/>
+        <!-- Spoiler -->
+        <rect x="10" y="8" width="28" height="6" rx="3" fill="#00eaff"/>
+      </svg>
+      <div class="energy-container"></div>
+    </div>
+    <div id="gameOver">
+      <div id="gameOverText">Game Over</div>
+      <div id="finalScore"></div>
+      <button onclick="restartGame()">Jogar Novamente</button>
+    </div>
+    <div id="startScreen">
+      <div style="font-size:1.5em; margin-bottom:20px;">Corrida de Carros</div>
+      <div style="font-size:1em; margin-bottom:20px;">Use as setas ← → para virar suavemente.<br>Seta ↑ para acelerar, ↓ para frear.<br>Ultrapasse os rivais, pegue turbos e divirta-se!<br>Pressione qualquer tecla para começar.</div>
+      <button onclick="startGame()">Iniciar</button>
+    </div>
+    <div class="side-line left"></div>
+    <div class="side-line right"></div>
+  </div>
+  <div id="hud-velocidade">
+    <svg id="analogSpeedometer" viewBox="0 0 200 200">
+      <defs>
+        <linearGradient id="needleGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#fff"/>
+          <stop offset="100%" stop-color="#00eaff"/>
+        </linearGradient>
+        <linearGradient id="arcGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#00eaff"/>
+          <stop offset="60%" stop-color="#ffd600"/>
+          <stop offset="100%" stop-color="#ff1744"/>
+        </linearGradient>
+      </defs>
+      <circle cx="100" cy="100" r="90" fill="#181c28" stroke="#222c" stroke-width="6"/>
+      <path id="arc" d="" fill="none" stroke="url(#arcGrad)" stroke-width="12"/>
+      <g id="speedometer-marks"></g>
+      <g id="speedometer-labels"></g>
+      <g id="speedometer-pointer"></g>
+    </svg>
+    <div id="digitalSpeedometer">0</div>
+    <div id="livesHUD" class="hud-block lives-block">Vidas: 3</div>
+  </div>
+  <div id="hud-buttons">
+    <button class="hud-btn" id="pauseBtn">Pausar</button>
+    <button class="hud-btn" id="restartBtn">Reiniciar</button>
+    <button class="hud-btn" id="carColorBtn">Cor do Carro</button>
+  </div>
+  <!-- Barra de velocidade vertical -->
+  <div id="verticalSpeedBar">
+    <div class="vertical-bar-bg">
+      <div class="vertical-bar-inner" id="verticalBarInner"></div>
+    </div>
+    <!-- Removido o título da barra -->
+  </div>
+  <audio id="overtakeSound" src="https://cdn.pixabay.com/audio/2022/10/16/audio_12b6b1b6e2.mp3"></audio>
+  <audio id="bgMusic" src="music.mp3" loop autoplay></audio>
+  <script>
+    const gameArea = document.getElementById('gameArea');
+    const playerCar = document.getElementById('playerCar');
+    const scoreDiv = document.getElementById('score');
+    const highScoreDiv = document.getElementById('highScore');
+    const gameOverDiv = document.getElementById('gameOver');
+    const finalScoreDiv = document.getElementById('finalScore');
+    const startScreen = document.getElementById('startScreen');
+    const overtakeSound = document.getElementById('overtakeSound');
+    const analogSpeedometer = document.getElementById('analogSpeedometer');
+    const pointerGroup = analogSpeedometer.querySelector('#speedometer-pointer');
+    const valueText = analogSpeedometer.querySelector('.speed-value');
+    const marksGroup = analogSpeedometer.querySelector('#speedometer-marks');
+    const labelsGroup = analogSpeedometer.querySelector('#speedometer-labels');
+    const digitalSpeedometer = document.getElementById('digitalSpeedometer');
+    const arcPath = analogSpeedometer.querySelector('#arc');
+
+    // Desenhar marcas, números e arco colorido do velocímetro analógico
+    function drawAnalogSpeedometer() {
+      marksGroup.innerHTML = '';
+      labelsGroup.innerHTML = '';
+      const minAngle = 135;
+      const maxAngle = 45;
+      const minSpeed = 0;
+      const maxSpeed = 350;
+      // Arco colorido
+      let arcStart = (minAngle-90) * Math.PI/180;
+      let arcEnd = (maxAngle+270) * Math.PI/180;
+      let r = 80;
+      let arc = describeArc(100,100,r, minAngle, 360+maxAngle);
+      arcPath.setAttribute('d', arc);
+      for (let i = 0; i <= 7; i++) {
+        const angle = (minAngle + (i * (360 - minAngle + maxAngle) / 7)) % 360;
+        const rad = (angle - 90) * Math.PI / 180;
+        const x1 = 100 + Math.cos(rad) * 74;
+        const y1 = 100 + Math.sin(rad) * 74;
+        const x2 = 100 + Math.cos(rad) * 88;
+        const y2 = 100 + Math.sin(rad) * 88;
+        marksGroup.innerHTML += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#fff" stroke-width="3"/>`;
+        // NÃO desenhar números/labels
+      }
+    }
+    // Função para arco SVG
+    function describeArc(cx, cy, r, startAngle, endAngle) {
+      let start = polarToCartesian(cx, cy, r, endAngle);
+      let end = polarToCartesian(cx, cy, r, startAngle);
+      let arcSweep = endAngle - startAngle <= 180 ? "0" : "1";
+      return [
+        "M", start.x, start.y,
+        "A", r, r, 0, arcSweep, 0, end.x, end.y
+      ].join(" ");
+    }
+    function polarToCartesian(cx, cy, r, angle) {
+      let rad = (angle-90) * Math.PI/180.0;
+      return {
+        x: cx + (r * Math.cos(rad)),
+        y: cy + (r * Math.sin(rad))
+      };
+    }
+    drawAnalogSpeedometer();
+
+    // Faixas de ultrapassagem laterais
+    function createPassLines() {
+      for (let side = 0; side <= 1; side++) {
+        for (let i = 0; i < 600 / 48; i++) {
+          const line = document.createElement('div');
+          line.className = 'pass-line';
+          line.style.left = side === 0 ? '24px' : '368px';
+          line.style.top = (i * 48 + 8) + 'px';
+          gameArea.appendChild(line);
+        }
+      }
+    }
+    createPassLines();
+
+    const areaWidth = 400;
+    const areaHeight = 600;
+    const carWidth = 40;
+    const carHeight = 70;
+    let carX = (areaWidth - carWidth) / 2;
+    let carY = areaHeight - carHeight - 30;
+    let carSpeed = 7;
+    let carSpeedTarget = 7;
+    // Parâmetros de física levemente realista
+    let acceleration = 0.18; // aceleração
+    let deceleration = 0.22; // frenagem
+    let grip = 0.18; // aderência base
+    let driftAmount = 0.11; // drift
+    let maxSpeed = 29.2; // 350 km/h
+    let minSpeed = 2.5;
+    let maxVX = 7.5;
+    let rollingSpeed = 4;
+    let driftGrip = 0.06; // aderência durante drift
+    let collisionBounce = 0.5; // rebate ao colidir
+    let collisionSlow = 0.7; // desacelera ao colidir
+    let carVX = 0;
+    let carVXTarget = 0;
+    let opponents = [];
+    let roadLines = [];
+    let windLines = [];
+    let score = 0;
+    let highScore = 0;
+    let gameRunning = false;
+    let lastFrameTime = 0;
+    let animationId;
+    let distance = 0;
+    let overtakes = 0;
+    let keys = {};
+    let lastOpponentTime = 0;
+    let opponentInterval = 700;
+    let windTimer = 0;
+    let lives = 3;
+    const maxLives = 3;
+    const livesHUD = document.getElementById('livesHUD');
+
+    // 1. Limitar número de partículas/efeitos temporários:
+    const MAX_WIND = 16;
+    const MAX_OVERTAKE_EFFECTS = 10;
+
+    function createWindLine() {
+      const winds = document.querySelectorAll('.wind');
+      if (winds.length >= MAX_WIND) return;
+      const wind = document.createElement('div');
+      wind.className = 'wind';
+      wind.style.left = (Math.random() * 340 + 30) + 'px';
+      wind.style.top = '0px';
+      gameArea.appendChild(wind);
+      setTimeout(() => {
+        if (wind.parentNode) wind.parentNode.removeChild(wind);
+      }, 500);
+    }
+
+    function showOvertakeEffect(x, y) {
+      const effects = document.querySelectorAll('.overtake-effect');
+      if (effects.length >= MAX_OVERTAKE_EFFECTS) return;
+      const effect = document.createElement('div');
+      effect.className = 'overtake-effect';
+      effect.textContent = '+1';
+      effect.style.left = (x + carWidth / 2 - 10) + 'px';
+      effect.style.top = (y - 10) + 'px';
+      gameArea.appendChild(effect);
+      setTimeout(() => { if (effect.parentNode) effect.parentNode.removeChild(effect); }, 700);
+    }
+
+    function showExplosion() {
+      // Remove explosão anterior se existir
+      const oldExplosion = document.getElementById('carExplosion');
+      if (oldExplosion) oldExplosion.remove();
+      // SVG de explosão simples
+      const explosion = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      explosion.setAttribute('id', 'carExplosion');
+      explosion.setAttribute('width', '60');
+      explosion.setAttribute('height', '60');
+      explosion.setAttribute('viewBox', '0 0 60 60');
+      explosion.style.position = 'absolute';
+      explosion.style.left = (carX + carWidth/2 - 30) + 'px';
+      explosion.style.top = (carY + carHeight/2 - 30) + 'px';
+      explosion.style.pointerEvents = 'none';
+      explosion.style.zIndex = 20;
+      explosion.innerHTML = `
+        <g>
+          <circle cx="30" cy="30" r="12" fill="#ffd600" opacity="0.85">
+            <animate attributeName="r" from="8" to="22" dur="0.6s" fill="freeze"/>
+            <animate attributeName="opacity" from="0.85" to="0" dur="0.6s" fill="freeze"/>
+          </circle>
+          <circle cx="30" cy="30" r="6" fill="#ff1744" opacity="0.7">
+            <animate attributeName="r" from="4" to="14" dur="0.6s" fill="freeze"/>
+            <animate attributeName="opacity" from="0.7" to="0" dur="0.6s" fill="freeze"/>
+          </circle>
+          <polygon points="30,10 34,26 50,22 36,32 44,46 30,36 16,46 24,32 10,22 26,26" fill="#fff" opacity="0.7">
+            <animateTransform attributeName="transform" type="scale" from="1" to="1.4" dur="0.6s" fill="freeze"/>
+            <animate attributeName="opacity" from="0.7" to="0" dur="0.6s" fill="freeze"/>
+          </polygon>
+        </g>
+      `;
+      gameArea.appendChild(explosion);
+      setTimeout(() => { explosion.remove(); }, 600);
+    }
+
+    if (localStorage.getItem('raceGameHighScore')) {
+      highScore = parseInt(localStorage.getItem('raceGameHighScore'));
+      highScoreDiv.textContent = 'Recorde: ' + highScore + ' m';
+    }
+
+    function createRoadLines() {
+      for (let i = 0; i < 8; i++) {
+        const line = document.createElement('div');
+        line.className = 'road-line';
+        line.style.top = (i * 80) + 'px';
+        gameArea.appendChild(line);
+        roadLines.push({el: line, y: i * 80});
+      }
+    }
+    createRoadLines();
+
+    function updateRoadLines(speed) {
+      for (let i = 0; i < roadLines.length; i++) {
+        roadLines[i].y += speed;
+        if (roadLines[i].y > areaHeight) roadLines[i].y -= 8 * 80;
+        roadLines[i].el.style.top = roadLines[i].y + 'px';
+      }
+      // Atualizar faixas de ultrapassagem
+      const passLines = document.querySelectorAll('.pass-line');
+      for (let i = 0; i < passLines.length; i++) {
+        let top = parseFloat(passLines[i].style.top);
+        top += speed;
+        if (top > areaHeight) top -= 600;
+        passLines[i].style.top = top + 'px';
+      }
+    }
+
+    function setCarPosition() {
+      playerCar.style.left = carX + 'px';
+      playerCar.style.top = carY + 'px';
+      let tilt = carVX / maxVX * 18;
+      // Tremida em velocidade máxima
+      if (carSpeed > maxSpeed - 1) {
+        const shake = Math.sin(Date.now() / 40) * 2;
+        playerCar.style.transform = `rotate(${tilt + shake}deg)`;
+      } else {
+        playerCar.style.transform = `rotate(${tilt}deg)`;
+      }
+    }
+    setCarPosition();
+
+    function randomOpponentColor() {
+      // Cor fixa para todos os adversários
+      return ['#ff1744', '#ff8a65']; // vermelho degradê
+    }
+
+    // 2. Limitar número de adversários simultâneos:
+    const MAX_OPPONENTS = 6;
+
+    // --- NOVOS TIPOS DE ADVERSÁRIOS ---
+    const OPPONENT_TYPES = [
+      {
+        type: 'normal',
+        width: 40,
+        height: 70,
+        speedMin: 5,
+        speedMax: 9,
+        canChangeLane: true,
+        svg: () => `<svg class='car-svg' viewBox='0 0 40 70'>
+        <defs>
+          <linearGradient id='normalBody' x1='0' y1='0' x2='0' y2='1'>
+            <stop offset='0%' stop-color='#e57373'/>
+            <stop offset='100%' stop-color='#b71c1c'/>
+          </linearGradient>
+        </defs>
+        <!-- Sombra -->
+        <ellipse cx='20' cy='66' rx='13' ry='6' fill='#0005'/>
+        <!-- Rodas -->
+        <rect x='3' y='10' width='6' height='16' rx='2' fill='#222'/>
+        <rect x='31' y='10' width='6' height='16' rx='2' fill='#222'/>
+        <rect x='3' y='44' width='6' height='16' rx='2' fill='#222'/>
+        <rect x='31' y='44' width='6' height='16' rx='2' fill='#222'/>
+        <!-- Corpo -->
+        <rect x='8' y='8' width='24' height='54' rx='8' fill='url(#normalBody)' stroke='#fff' stroke-width='1.5'/>
+        <!-- Para-brisa -->
+        <rect x='12' y='12' width='16' height='12' rx='4' fill='#b3e5fc' stroke='#fff' stroke-width='0.7'/>
+        <!-- Portas -->
+        <rect x='13' y='26' width='14' height='22' rx='3' fill='#fff1' stroke='#fff' stroke-width='0.5'/>
+        <!-- Faróis -->
+        <ellipse cx='14' cy='10' rx='2' ry='2' fill='#fff'/>
+        <ellipse cx='26' cy='10' rx='2' ry='2' fill='#fff'/>
+        <!-- Lanternas -->
+        <ellipse cx='14' cy='62' rx='2' ry='1.2' fill='#ff1744'/>
+        <ellipse cx='26' cy='62' rx='2' ry='1.2' fill='#ff1744'/>
+      </svg>`
+      },
+      {
+        type: 'esportivo',
+        width: 44,
+        height: 62,
+        speedMin: 8,
+        speedMax: 13,
+        canChangeLane: true,
+        svg: () => `<svg class='car-svg' viewBox='0 0 44 62'>
+          <defs>
+            <linearGradient id='sportBody' x1='0' y1='0' x2='0' y2='1'>
+              <stop offset='0%' stop-color='#ffd600'/>
+              <stop offset='100%' stop-color='#ff9800'/>
+            </linearGradient>
+            <linearGradient id='sportShadow' x1='0' y1='1' x2='0' y2='0'>
+              <stop offset='0%' stop-color='#0008'/>
+              <stop offset='100%' stop-color='transparent'/>
+            </linearGradient>
+          </defs>
+          <!-- Sombra -->
+          <ellipse cx='22' cy='58' rx='15' ry='5' fill='url(#sportShadow)'/>
+          <!-- Rodas -->
+          <ellipse cx='10' cy='12' rx='4' ry='7' fill='#222'/>
+          <ellipse cx='34' cy='12' rx='4' ry='7' fill='#222'/>
+          <ellipse cx='10' cy='50' rx='4' ry='7' fill='#222'/>
+          <ellipse cx='34' cy='50' rx='4' ry='7' fill='#222'/>
+          <!-- Corpo principal -->
+          <rect x='7' y='8' width='30' height='46' rx='13' fill='url(#sportBody)' stroke='#222' stroke-width='2'/>
+          <!-- Faixa preta central -->
+          <rect x='19' y='8' width='6' height='46' rx='2.5' fill='#222' opacity='0.95'/>
+          <!-- Para-brisa -->
+          <rect x='13' y='14' width='18' height='10' rx='4' fill='#b3e5fc' stroke='#fff' stroke-width='0.7'/>
+          <!-- Teto -->
+          <rect x='15' y='26' width='14' height='12' rx='3' fill='#fff2' stroke='#fff' stroke-width='0.5'/>
+          <!-- Aerofólio traseiro -->
+          <rect x='10' y='54' width='24' height='5' rx='2.5' fill='#222'/>
+          <rect x='13' y='56' width='18' height='3' rx='1.5' fill='#ffd600'/>
+          <!-- Faróis -->
+          <ellipse cx='15' cy='10' rx='2' ry='1.2' fill='#fff'/>
+          <ellipse cx='29' cy='10' rx='2' ry='1.2' fill='#fff'/>
+          <!-- Lanternas -->
+          <ellipse cx='15' cy='54' rx='2' ry='1.2' fill='#ff1744'/>
+          <ellipse cx='29' cy='54' rx='2' ry='1.2' fill='#ff1744'/>
+          <!-- Detalhes laterais -->
+          <rect x='7' y='22' width='4' height='18' rx='2' fill='#222' opacity='0.5'/>
+          <rect x='33' y='22' width='4' height='18' rx='2' fill='#222' opacity='0.5'/>
+        </svg>`
+      },
+      {
+        type: 'onibus',
+        width: 44,
+        height: 120,
+        speedMin: 3.5,
+        speedMax: 5.5,
+        canChangeLane: false,
+        svg: () => `<svg class='car-svg' viewBox='0 0 44 120'>
+          <defs>
+            <linearGradient id='busBody' x1='0' y1='0' x2='0' y2='1'>
+              <stop offset='0%' stop-color='#ffd600'/>
+              <stop offset='100%' stop-color='#ff9800'/>
+            </linearGradient>
+          </defs>
+          <!-- Sombra -->
+          <ellipse cx='22' cy='116' rx='18' ry='7' fill='#0005'/>
+          <!-- Rodas -->
+          <rect x='2' y='16' width='7' height='18' rx='2' fill='#222'/>
+          <rect x='35' y='16' width='7' height='18' rx='2' fill='#222'/>
+          <rect x='2' y='86' width='7' height='18' rx='2' fill='#222'/>
+          <rect x='35' y='86' width='7' height='18' rx='2' fill='#222'/>
+          <!-- Corpo -->
+          <rect x='7' y='8' width='30' height='100' rx='10' fill='url(#busBody)' stroke='#fff' stroke-width='2'/>
+          <!-- Janelas -->
+          <rect x='10' y='14' width='24' height='18' rx='4' fill='#fffde7'/>
+          <rect x='10' y='36' width='24' height='16' rx='3' fill='#b3e5fc'/>
+          <rect x='10' y='54' width='24' height='16' rx='3' fill='#b3e5fc'/>
+          <rect x='10' y='72' width='24' height='16' rx='3' fill='#b3e5fc'/>
+          <!-- Portas -->
+          <rect x='18' y='92' width='8' height='16' rx='2' fill='#fff2' stroke='#fff' stroke-width='0.5'/>
+          <!-- Faróis -->
+          <ellipse cx='15' cy='10' rx='2' ry='1.2' fill='#fff'/>
+          <ellipse cx='29' cy='10' rx='2' ry='1.2' fill='#fff'/>
+          <!-- Lanternas -->
+          <ellipse cx='15' cy='108' rx='2' ry='1.2' fill='#ff1744'/>
+          <ellipse cx='29' cy='108' rx='2' ry='1.2' fill='#ff1744'/>
+        </svg>`
+      },
+      {
+        type: 'caminhonete',
+        width: 50,
+        height: 76,
+        speedMin: 6,
+        speedMax: 10,
+        canChangeLane: true,
+        svg: () => `<svg class='car-svg' viewBox='0 0 50 76'>
+          <defs>
+            <linearGradient id='truckBody' x1='0' y1='0' x2='0' y2='1'>
+              <stop offset='0%' stop-color='#8d6e63'/>
+              <stop offset='100%' stop-color='#4e342e'/>
+            </linearGradient>
+          </defs>
+          <!-- Sombra -->
+          <ellipse cx='25' cy='72' rx='18' ry='7' fill='#0005'/>
+          <!-- Rodas -->
+          <rect x='4' y='14' width='8' height='16' rx='2' fill='#222'/>
+          <rect x='38' y='14' width='8' height='16' rx='2' fill='#222'/>
+          <rect x='4' y='48' width='8' height='16' rx='2' fill='#222'/>
+          <rect x='38' y='48' width='8' height='16' rx='2' fill='#222'/>
+          <!-- Corpo -->
+          <rect x='10' y='10' width='30' height='56' rx='10' fill='url(#truckBody)' stroke='#fff' stroke-width='2'/>
+          <!-- Caçamba -->
+          <rect x='10' y='38' width='30' height='18' rx='4' fill='#a1887f' stroke='#fff' stroke-width='0.7'/>
+          <!-- Para-brisa -->
+          <rect x='16' y='14' width='18' height='10' rx='3' fill='#b3e5fc' stroke='#fff' stroke-width='0.7'/>
+          <!-- Portas -->
+          <rect x='18' y='26' width='14' height='18' rx='2' fill='#fff1' stroke='#fff' stroke-width='0.5'/>
+          <!-- Faróis -->
+          <ellipse cx='18' cy='12' rx='2' ry='1.2' fill='#fff'/>
+          <ellipse cx='32' cy='12' rx='2' ry='1.2' fill='#fff'/>
+          <!-- Lanternas -->
+          <ellipse cx='18' cy='64' rx='2' ry='1.2' fill='#ff1744'/>
+          <ellipse cx='32' cy='64' rx='2' ry='1.2' fill='#ff1744'/>
+        </svg>`
+      },
+      {
+        type: 'moto',
+        width: 22,
+        height: 48,
+        speedMin: 10,
+        speedMax: 15,
+        canChangeLane: true,
+        svg: () => `<svg class='car-svg' viewBox='0 0 22 48'>
+          <defs>
+            <linearGradient id='motoBody' x1='0' y1='0' x2='0' y2='1'>
+              <stop offset='0%' stop-color='#f06292'/>
+              <stop offset='100%' stop-color='#ad1457'/>
+            </linearGradient>
+          </defs>
+          <!-- Sombra -->
+          <ellipse cx='11' cy='46' rx='8' ry='3' fill='#0005'/>
+          <!-- Rodas -->
+          <ellipse cx='11' cy='10' rx='4' ry='2' fill='#222'/>
+          <ellipse cx='11' cy='38' rx='4' ry='2' fill='#222'/>
+          <!-- Corpo -->
+          <rect x='7' y='14' width='8' height='18' rx='3' fill='url(#motoBody)' stroke='#fff' stroke-width='1'/>
+          <!-- Banco -->
+          <rect x='9' y='20' width='4' height='8' rx='1.5' fill='#333'/>
+          <!-- Guidão -->
+          <rect x='4' y='8' width='14' height='2' rx='1' fill='#888'/>
+          <!-- Farol -->
+          <ellipse cx='11' cy='8' rx='2' ry='1' fill='#fff'/>
+          <!-- Lanterna -->
+          <ellipse cx='11' cy='34' rx='1.2' ry='0.7' fill='#ff1744'/>
+        </svg>`
+      }
+    ];
+
+    // --- FIAT UNO COM ESCADA ---
+    const UNINHO_SPEED = 350 / 12; // 350 km/h convertido para o sistema do jogo
+    const UNINHO_WIDTH = 38;
+    const UNINHO_HEIGHT = 68;
+    function getUninhoSVG() {
+      return `<svg class='car-svg' viewBox='0 0 38 68'>
+        <defs>
+          <linearGradient id='unoBody' x1='0' y1='0' x2='0' y2='1'>
+            <stop offset='0%' stop-color='#bdbdbd'/>
+            <stop offset='100%' stop-color='#757575'/>
+          </linearGradient>
+        </defs>
+        <!-- Sombra -->
+        <ellipse cx='19' cy='64' rx='13' ry='5' fill='#0005'/>
+        <!-- Rodas -->
+        <rect x='2' y='10' width='5' height='14' rx='2' fill='#222'/>
+        <rect x='31' y='10' width='5' height='14' rx='2' fill='#222'/>
+        <rect x='2' y='44' width='5' height='14' rx='2' fill='#222'/>
+        <rect x='31' y='44' width='5' height='14' rx='2' fill='#222'/>
+        <!-- Corpo do Uno -->
+        <rect x='7' y='8' width='24' height='52' rx='5' fill='url(#unoBody)' stroke='#333' stroke-width='1.2'/>
+        <!-- Para-brisa -->
+        <rect x='11' y='12' width='16' height='10' rx='3' fill='#b3e5fc' stroke='#fff' stroke-width='0.7'/>
+        <!-- Portas -->
+        <rect x='12' y='24' width='14' height='20' rx='2' fill='#fff1' stroke='#fff' stroke-width='0.4'/>
+        <!-- Faróis -->
+        <ellipse cx='14' cy='10' rx='2' ry='1.2' fill='#fff'/>
+        <ellipse cx='24' cy='10' rx='2' ry='1.2' fill='#fff'/>
+        <!-- Lanternas -->
+        <ellipse cx='14' cy='58' rx='2' ry='1.2' fill='#ff1744'/>
+        <ellipse cx='24' cy='58' rx='2' ry='1.2' fill='#ff1744'/>
+        <!-- Escada -->
+        <rect x='16' y='16' width='6' height='36' rx='1.2' fill='#bfa94a' stroke='#8d6e00' stroke-width='0.7'/>
+        <rect x='16' y='20' width='6' height='2' rx='0.7' fill='#8d6e00'/>
+        <rect x='16' y='26' width='6' height='2' rx='0.7' fill='#8d6e00'/>
+        <rect x='16' y='32' width='6' height='2' rx='0.7' fill='#8d6e00'/>
+        <rect x='16' y='38' width='6' height='2' rx='0.7' fill='#8d6e00'/>
+        <rect x='16' y='44' width='6' height='2' rx='0.7' fill='#8d6e00'/>
+      </svg>`;
+    }
+
+    let nextUninhoAt = 1000;
+
+    function spawnUninho() {
+      const minX = 10;
+      const maxX = areaWidth - UNINHO_WIDTH - 10;
+      const x = Math.random() * (maxX - minX) + minX;
+      const uno = document.createElement('div');
+      uno.className = 'opponent';
+      uno.style.left = x + 'px';
+      uno.style.top = '-' + UNINHO_HEIGHT + 'px';
+      uno.style.width = UNINHO_WIDTH + 'px';
+      uno.style.height = UNINHO_HEIGHT + 'px';
+      uno.innerHTML = getUninhoSVG();
+      gameArea.appendChild(uno);
+      opponents.push({
+        el: uno,
+        x: x,
+        y: -UNINHO_HEIGHT,
+        speed: UNINHO_SPEED,
+        overtaken: false,
+        laneTarget: x,
+        laneChangeTimer: 0,
+        _collided: false,
+        type: 'uninho',
+        width: UNINHO_WIDTH,
+        height: UNINHO_HEIGHT,
+        canChangeLane: false
+      });
+    }
+
+    function createOpponent() {
+      if (opponents.length >= MAX_OPPONENTS) return;
+      // Escolher tipo aleatório
+      const typeIndex = Math.floor(Math.random() * OPPONENT_TYPES.length);
+      const typeObj = OPPONENT_TYPES[typeIndex];
+      const minX = 10;
+      const maxX = areaWidth - typeObj.width - 10;
+      const x = Math.random() * (maxX - minX) + minX;
+      const opp = document.createElement('div');
+      opp.className = 'opponent';
+      opp.style.left = x + 'px';
+      opp.style.top = '-' + typeObj.height + 'px';
+      opp.style.width = typeObj.width + 'px';
+      opp.style.height = typeObj.height + 'px';
+      opp.innerHTML = typeObj.svg();
+      gameArea.appendChild(opp);
+      // Velocidade individual do adversário
+      const oppSpeed = Math.random() * (typeObj.speedMax - typeObj.speedMin) + typeObj.speedMin;
+      // IA: troca de faixa (apenas se permitido)
+      let laneTarget = x;
+      let laneChangeTimer = 0;
+      if (typeObj.canChangeLane) {
+        if (typeObj.type === 'esportivo') {
+          // Esportivo troca mais rápido
+          laneChangeTimer = Math.random() * 60 + 30;
+        laneTarget = Math.random() * (maxX - minX) + minX;
+        } else {
+          laneChangeTimer = Math.random() * 120 + 60;
+          if (Math.random() < 0.5) laneTarget = Math.random() * (maxX - minX) + minX;
+        }
+      }
+      opponents.push({
+        el: opp,
+        x: x,
+        y: -typeObj.height,
+        speed: oppSpeed,
+        overtaken: false,
+        laneTarget: laneTarget,
+        laneChangeTimer: laneChangeTimer,
+        _collided: false,
+        type: typeObj.type,
+        width: typeObj.width,
+        height: typeObj.height,
+        canChangeLane: typeObj.canChangeLane
+      });
+    }
+
+    function updateOpponents(dt) {
+      for (let i = opponents.length - 1; i >= 0; i--) {
+        const opp = opponents[i];
+        // IA: troca de faixa
+        if (opp.canChangeLane && opp.laneTarget !== undefined) {
+          opp.laneChangeTimer -= dt;
+          if (opp.laneChangeTimer > 0) {
+            opp.x += (opp.laneTarget - opp.x) * (opp.type === 'esportivo' ? 0.018 : 0.01) * dt;
+          } else if (opp.type === 'esportivo') {
+            // Esportivo troca de faixa frequentemente
+            const minX = 10;
+            const maxX = areaWidth - opp.width - 10;
+            opp.laneTarget = Math.random() * (maxX - minX) + minX;
+            opp.laneChangeTimer = Math.random() * 60 + 30;
+          }
+        }
+        opp.y += opp.speed * dt;
+        opp.el.style.top = opp.y + 'px';
+        opp.el.style.left = opp.x + 'px';
+        // Ajustar tamanho visual
+        opp.el.style.width = opp.width + 'px';
+        opp.el.style.height = opp.height + 'px';
+        const tolerance = 8;
+        // Colisão considerando tamanho do adversário (apenas com o jogador)
+        if (
+          opp.y + opp.height - tolerance > carY &&
+          opp.y + tolerance < carY + carHeight &&
+          opp.x + opp.width - tolerance > carX &&
+          opp.x + tolerance < carX + carWidth
+        ) {
+          if (!opp._collided) {
+            if (opp.type === 'uninho') {
+              // Colidiu com o Uninho: perde uma vida (não Game Over instantâneo)
+              carSpeed *= 0.6;
+              carVX += (opp.x < carX ? 1.2 : -1.2);
+              lives--;
+              opp._collided = true;
+              updateLivesHUD();
+              showExplosion();
+              if (lives <= 0) {
+                endGame();
+              }
+            } else {
+              carSpeed *= 0.6;
+              carVX += (opp.x < carX ? 1.2 : -1.2);
+              lives--;
+              opp._collided = true;
+              updateLivesHUD();
+              showExplosion();
+              if (lives <= 0) {
+                endGame();
+              }
+            }
+          }
+        }
+        // NÃO checar colisão entre adversários!
+        if (!opp.overtaken && opp.y > carY + carHeight) {
+          overtakes++;
+          opp.overtaken = true;
+          showOvertakeEffect(opp.x, carY);
+          overtakeSound.currentTime = 0;
+          overtakeSound.play();
+        }
+        if (opp.y > areaHeight + 40) { // margem extra para ônibus
+          gameArea.removeChild(opp.el);
+          opponents.splice(i, 1);
+        }
+      }
+    }
+
+    function updateScore(dt) {
+      distance += carSpeed * dt * 0.03;
+      scoreDiv.textContent = 'Distância: ' + Math.floor(distance) + ' m';
+      // Aparição do Uninho
+      if (distance >= nextUninhoAt) {
+        spawnUninho();
+        nextUninhoAt += 1000;
+      }
+    }
+
+    function updateAnalogSpeedometer() {
+      let kmh = Math.round(carSpeed * 12);
+      let minAngle = 135;
+      let maxAngle = 45;
+      let angle = minAngle + (kmh / 350) * (360 - minAngle + maxAngle);
+      if (angle > 360) angle -= 360;
+      let rad = (angle - 90) * Math.PI / 180;
+      pointerGroup.innerHTML = `<line x1="100" y1="100" x2="${100 + Math.cos(rad) * 70}" y2="${100 + Math.sin(rad) * 70}" stroke="url(#needleGrad)" stroke-width="9" stroke-linecap="round" filter="drop-shadow(0 0 8px #00eaff)"/>
+        <circle cx="100" cy="100" r="13" fill="#222" stroke="#00eaff" stroke-width="3"/>`;
+      digitalSpeedometer.textContent = kmh;
+    }
+
+    // Definir velocidade mínima de rolagem
+    // const rollingSpeed = 4; // REMOVER esta linha duplicada
+
+    function gameLoop(timestamp) {
+      if (!gameRunning) return;
+      if (!lastFrameTime) lastFrameTime = timestamp;
+      const dt = (timestamp - lastFrameTime) / 16.67;
+      lastFrameTime = timestamp;
+      updateRoadLines(carSpeed);
+      if (!lastOpponentTime || timestamp - lastOpponentTime > opponentInterval + Math.random()*400) {
+        if (Math.random() < 0.7) createOpponent();
+        lastOpponentTime = timestamp;
+      }
+      updateOpponents(dt);
+      updateScore(dt);
+      updateAnalogSpeedometer();
+      updateVerticalSpeedBar(); // <- aqui
+      windTimer += dt;
+      if (carSpeed > maxSpeed - 2 && windTimer > 0.7) {
+        createWindLine();
+        windTimer = 0;
+      }
+      if (carSpeed < maxSpeed - 2) windTimer = 0.5;
+
+      // Se não estiver acelerando nem freando, manter rolagem
+      if (!keys['w'] && !keys['s']) {
+        carSpeedTarget = rollingSpeed;
+      }
+
+      // Aceleração/frenagem levemente realista
+      if (carSpeed < carSpeedTarget) {
+        carSpeed += acceleration * dt * (1 - carSpeed/maxSpeed);
+        if (carSpeed > carSpeedTarget) carSpeed = carSpeedTarget;
+      } else if (carSpeed > carSpeedTarget) {
+        carSpeed -= deceleration * dt * (1 + carSpeed/maxSpeed*0.7);
+        if (carSpeed < carSpeedTarget) carSpeed = carSpeedTarget;
+      }
+
+      // Drift e aderência levemente realistas
+      let desiredVX = 0;
+      if (keys['a']) desiredVX -= maxVX;
+      if (keys['d']) desiredVX += maxVX;
+      // Aderência diminui em alta velocidade
+      let currentGrip = grip * (carSpeed < 14 ? 1.2 : 0.7);
+      carVX += (desiredVX - carVX) * currentGrip * dt;
+      // Drift mais fácil em alta velocidade
+      if ((keys['a'] || keys['d']) && carSpeed > 12) {
+        carVX += driftAmount * (desiredVX > 0 ? 1 : -1) * dt * (carSpeed/maxSpeed);
+      }
+      // Recuperação lateral suave
+      if (!keys['a'] && !keys['d']) {
+        carVX *= (1 - 0.13 * dt);
+        if (Math.abs(carVX) < 0.1) carVX = 0;
+      }
+      // Limites laterais
+      if (carVX > maxVX) carVX = maxVX;
+      if (carVX < -maxVX) carVX = -maxVX;
+      carX += carVX * dt;
+      if (carX < 0) {
+        carX = 0;
+        carVX = 1.5;
+        carSpeed *= 0.7;
+      }
+      if (carX > areaWidth - carWidth) {
+        carX = areaWidth - carWidth;
+        carVX = -1.5;
+        carSpeed *= 0.7;
+      }
+      setCarPosition();
+      animationId = requestAnimationFrame(gameLoop);
+    }
+
+    function endGame() {
+      gameRunning = false;
+      cancelAnimationFrame(animationId);
+      finalScoreDiv.innerHTML = 'Distância: ' + Math.floor(distance) + ' m<br>Ultrapassagens: ' + overtakes;
+      finalScoreDiv.innerHTML += '<br>Vidas restantes: ' + Math.max(0, lives);
+      // Aplicar estilo igual à tela de início
+      gameOverDiv.style.background = 'rgba(10,16,24,0.92)';
+      gameOverDiv.style.display = 'flex';
+      gameOverDiv.style.flexDirection = 'column';
+      gameOverDiv.style.alignItems = 'center';
+      gameOverDiv.style.justifyContent = 'center';
+      gameOverDiv.style.zIndex = '10000';
+      gameOverDiv.style.fontFamily = "'Orbitron', Arial, sans-serif";
+      gameOverDiv.style.position = 'fixed';
+      gameOverDiv.style.top = '0';
+      gameOverDiv.style.left = '0';
+      gameOverDiv.style.right = '0';
+      gameOverDiv.style.bottom = '0';
+      gameOverDiv.style.margin = '0';
+      // Ajustar fontes dos elementos internos
+      const gameOverText = document.getElementById('gameOverText');
+      if (gameOverText) {
+        gameOverText.style.fontSize = '1.6em';
+        gameOverText.style.fontWeight = 'bold';
+        gameOverText.style.letterSpacing = '2px';
+        gameOverText.style.marginBottom = '14px';
+      }
+      if (finalScoreDiv) {
+        finalScoreDiv.style.fontSize = '1em';
+        finalScoreDiv.style.marginBottom = '22px';
+        finalScoreDiv.style.opacity = '0.8';
+      }
+      const gameOverBtn = gameOverDiv.querySelector('button');
+      if (gameOverBtn) {
+        gameOverBtn.style.fontSize = '1em';
+        gameOverBtn.style.padding = '10px 32px';
+        gameOverBtn.style.borderRadius = '10px';
+        gameOverBtn.style.background = '#00eaff';
+        gameOverBtn.style.color = '#181c28';
+        gameOverBtn.style.border = 'none';
+        gameOverBtn.style.boxShadow = '0 2px 12px #00eaff33';
+        gameOverBtn.style.cursor = 'pointer';
+        gameOverBtn.style.fontFamily = "'Orbitron',Arial,sans-serif";
+        gameOverBtn.style.fontWeight = 'bold';
+      }
+      if (distance > highScore) {
+        highScore = Math.floor(distance);
+        localStorage.setItem('raceGameHighScore', highScore);
+        highScoreDiv.textContent = 'Recorde: ' + highScore + ' m';
+      }
+    }
+
+    function restartGame() {
+      opponents.forEach(opp => gameArea.removeChild(opp.el));
+      opponents = [];
+      document.querySelectorAll('.wind').forEach(w => w.remove());
+      distance = 0;
+      overtakes = 0;
+      carX = (areaWidth - carWidth) / 2;
+      carY = areaHeight - carHeight - 30;
+      carSpeed = 7;
+      carSpeedTarget = 7;
+      carVX = 0;
+      lives = maxLives;
+      updateLivesHUD();
+      setCarPosition();
+      lastFrameTime = 0;
+      lastOpponentTime = 0;
+      windTimer = 0;
+      scoreDiv.textContent = 'Distância: 0 m';
+      digitalSpeedometer.textContent = '0';
+      gameOverDiv.style.display = 'none';
+      gameRunning = true;
+      animationId = requestAnimationFrame(gameLoop);
+      updateCarColor(); // Garantir cor ao reiniciar
+    }
+
+    function startGame() {
+      restartGame();
+      startScreen.style.display = 'none';
+      updateCarColor(); // Garantir cor ao iniciar
+    }
+
+    document.addEventListener('keydown', (e) => {
+      const key = e.key.toLowerCase();
+      keys[key] = true;
+      if (!gameRunning && startScreen.style.display !== 'none') {
+        startGame();
+        return;
+      }
+      if (gameRunning) {
+        if (key === 'w') {
+          carSpeedTarget += 1.5;
+          if (carSpeedTarget > maxSpeed) carSpeedTarget = maxSpeed;
+        }
+        if (key === 's') {
+          carSpeedTarget -= 1.5;
+          if (carSpeedTarget < minSpeed) carSpeedTarget = minSpeed;
+        }
+      }
+    });
+    document.addEventListener('keyup', (e) => {
+      const key = e.key.toLowerCase();
+      keys[key] = false;
+      // Ao soltar W, desacelerar até rolagem
+      if (key === 'w') {
+        if (!keys['s']) carSpeedTarget = rollingSpeed;
+      }
+      // Ao soltar S, se não estiver acelerando, manter rolagem
+      if (key === 's') {
+        if (!keys['w']) carSpeedTarget = rollingSpeed;
+      }
+    });
+
+    // 1. Tela de início minimalista
+    startScreen.innerHTML = `
+      <div style="font-size:1.6em;font-weight:bold;letter-spacing:2px;margin-bottom:14px;">Corrida Neon</div>
+      <div style="font-size:1em;margin-bottom:22px;opacity:0.8;">Aperte <b>Jogar</b> ou <b>W</b> para começar<br><span style='font-size:0.9em;opacity:0.7;'>Controles: WASD</span></div>
+      <button id="startBtn" style="font-size:1em;padding:10px 32px;border-radius:10px;background:#00eaff;color:#181c28;border:none;box-shadow:0 2px 12px #00eaff33;cursor:pointer;font-family:'Orbitron',Arial,sans-serif;font-weight:bold;">Jogar</button>
+    `;
+    startScreen.style.background = 'rgba(10,16,24,0.92)';
+    startScreen.style.display = 'flex';
+    startScreen.style.flexDirection = 'column';
+    startScreen.style.alignItems = 'center';
+    startScreen.style.justifyContent = 'center';
+    startScreen.style.zIndex = '10000';
+    startScreen.style.fontFamily = "'Orbitron', Arial, sans-serif";
+    startScreen.style.position = 'fixed';
+    startScreen.style.top = '0';
+    startScreen.style.left = '0';
+    startScreen.style.right = '0';
+    startScreen.style.bottom = '0';
+    startScreen.style.margin = '0';
+
+    // Botão de iniciar (garantir atribuição do evento após innerHTML)
+    const startBtn = startScreen.querySelector('#startBtn');
+    if (startBtn) {
+      startBtn.onclick = startGame;
+    }
+
+    // 2. Pausa e reinício modernos
+    // Botão de pausa no HUD
+    const pauseBtn = document.getElementById('pauseBtn');
+    let paused = false;
+
+    // Tela de pausa
+    const pauseScreen = document.createElement('div');
+    pauseScreen.id = 'pauseScreen';
+    pauseScreen.style.position = 'fixed';
+    pauseScreen.style.top = '0';
+    pauseScreen.style.left = '0';
+    pauseScreen.style.right = '0';
+    pauseScreen.style.bottom = '0';
+    pauseScreen.style.background = 'rgba(10,16,24,0.92)';
+    pauseScreen.style.display = 'none';
+    pauseScreen.style.flexDirection = 'column';
+    pauseScreen.style.alignItems = 'center';
+    pauseScreen.style.justifyContent = 'center';
+    pauseScreen.style.zIndex = '10000';
+    pauseScreen.style.fontFamily = "'Orbitron', Arial, sans-serif";
+    pauseScreen.innerHTML = `
+      <div style="font-size:2em;font-weight:bold;margin-bottom:18px;color:#fff;text-shadow:0 2px 12px #000a,0 2px 16px var(--theme-primary);">Jogo Pausado</div>
+      <div style="display:flex;gap:24px;">
+        <button id="resumeBtn" style="font-size:1.1em;padding:10px 32px;border-radius:8px;background:#00eaff;color:#181c28;border:none;box-shadow:0 2px 12px #00eaff33;cursor:pointer;font-family:'Orbitron',Arial,sans-serif;font-weight:bold;">Continuar</button>
+        <button id="restartBtn2" style="font-size:1.1em;padding:10px 32px;border-radius:8px;background:#181c28;color:#00eaff;border:none;box-shadow:0 2px 12px #00eaff33;cursor:pointer;font-family:'Orbitron',Arial,sans-serif;font-weight:bold;">Reiniciar</button>
+      </div>
+    `;
+    document.body.appendChild(pauseScreen);
+
+    pauseBtn.onclick = () => {
+      if (!gameRunning) return;
+      paused = true;
+      gameRunning = false;
+      pauseScreen.style.display = 'flex';
+    };
+    document.getElementById('restartBtn').onclick = restartGame;
+    pauseScreen.querySelector('#resumeBtn').onclick = () => {
+      paused = false;
+      pauseScreen.style.display = 'none';
+      gameRunning = true;
+      animationId = requestAnimationFrame(gameLoop);
+    };
+    pauseScreen.querySelector('#restartBtn2').onclick = () => {
+      pauseScreen.style.display = 'none';
+      paused = false;
+      restartGame();
+    };
+    // Permitir pausar com tecla ESC
+    window.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && gameRunning) {
+        pauseBtn.onclick();
+      }
+    });
+
+    // --- PAUSE AUTOMÁTICO AO PERDER O FOCO DA ABA ---
+    window.addEventListener('blur', () => {
+      if (gameRunning && !paused) {
+        pauseBtn.onclick();
+      }
+    });
+    // Opcional: Retomar automaticamente ao voltar para a aba
+    // window.addEventListener('focus', () => {
+    //   if (paused && pauseScreen.style.display === 'flex') {
+    //     pauseScreen.querySelector('#resumeBtn').onclick();
+    //   }
+    // });
+
+    // --- CORES DISPONÍVEIS ---
+    const carColors = [
+      {grad1: '#00eaff', grad2: '#1976d2'}, // Azul Neon (padrão)
+      {grad1: '#ff1744', grad2: '#ff8a65'}, // Vermelho
+      {grad1: '#ffd600', grad2: '#ff9800'}, // Amarelo
+      {grad1: '#00e676', grad2: '#00bfae'}, // Verde
+      {grad1: '#ab47bc', grad2: '#7c4dff'}, // Roxo
+      {grad1: '#fff', grad2: '#bdbdbd'},    // Branco
+      {grad1: '#ffb300', grad2: '#ff6f00'}, // Laranja
+      {grad1: '#00bcd4', grad2: '#0097a7'}, // Ciano
+      {grad1: '#f06292', grad2: '#ad1457'}, // Rosa
+      {grad1: '#263238', grad2: '#607d8b'}  // Cinza
+    ];
+    // Cores de tema associadas a cada cor do carro
+    const themeColors = [
+      // primária, secundária, highlight
+      {primary: '#00eaff', secondary: '#1976d2', highlight: '#ffd600', bg: '#181c28', shadow: '#00eaff22'},
+      {primary: '#ff1744', secondary: '#ff8a65', highlight: '#ffd600', bg: '#2d1a1a', shadow: '#ff174422'},
+      {primary: '#ffd600', secondary: '#ff9800', highlight: '#00eaff', bg: '#2d2a1a', shadow: '#ffd60022'},
+      {primary: '#00e676', secondary: '#00bfae', highlight: '#ffd600', bg: '#18281c', shadow: '#00e67622'},
+      {primary: '#ab47bc', secondary: '#7c4dff', highlight: '#ffd600', bg: '#221a2d', shadow: '#ab47bc22'},
+      {primary: '#fff', secondary: '#bdbdbd', highlight: '#00eaff', bg: '#232323', shadow: '#fff2'},
+      {primary: '#ffb300', secondary: '#ff6f00', highlight: '#00eaff', bg: '#2d241a', shadow: '#ffb30022'},
+      {primary: '#00bcd4', secondary: '#0097a7', highlight: '#ffd600', bg: '#18282a', shadow: '#00bcd422'},
+      {primary: '#f06292', secondary: '#ad1457', highlight: '#ffd600', bg: '#2d1a23', shadow: '#f0629222'},
+      {primary: '#263238', secondary: '#607d8b', highlight: '#ffd600', bg: '#181c28', shadow: '#26323822'}
+    ];
+    // Paleta de elementos do carro para cada tema
+    const carElementPalettes = [
+      // Corpo, vidro, detalhe central, farol, spoiler, pneus, roda
+      {glass: '#b3e5fc', detail: '#fff', headlight: '#fff', spoiler: '#00eaff', tire: '#222', rim: '#00eaff'}, // Azul
+      {glass: '#ffd6d6', detail: '#fff', headlight: '#fffde7', spoiler: '#ff1744', tire: '#222', rim: '#ff1744'}, // Vermelho
+      {glass: '#fffde7', detail: '#fff', headlight: '#fff', spoiler: '#ffd600', tire: '#222', rim: '#ffd600'}, // Amarelo
+      {glass: '#b2fef7', detail: '#fff', headlight: '#fff', spoiler: '#00e676', tire: '#222', rim: '#00e676'}, // Verde
+      {glass: '#e1bee7', detail: '#fff', headlight: '#fff', spoiler: '#ab47bc', tire: '#222', rim: '#ab47bc'}, // Roxo
+      {glass: '#fff', detail: '#bdbdbd', headlight: '#fff', spoiler: '#fff', tire: '#222', rim: '#bdbdbd'}, // Branco
+      {glass: '#ffe0b2', detail: '#fff', headlight: '#fff', spoiler: '#ffb300', tire: '#222', rim: '#ffb300'}, // Laranja
+      {glass: '#b2ebf2', detail: '#fff', headlight: '#fff', spoiler: '#00bcd4', tire: '#222', rim: '#00bcd4'}, // Ciano
+      {glass: '#f8bbd0', detail: '#fff', headlight: '#fff', spoiler: '#f06292', tire: '#222', rim: '#f06292'}, // Rosa
+      {glass: '#b0bec5', detail: '#fff', headlight: '#fff', spoiler: '#263238', tire: '#222', rim: '#607d8b'}  // Cinza
+    ];
+    let carColorIndex = 0;
+    // Carregar cor do localStorage
+    if (localStorage.getItem('carColorIndex')) {
+      carColorIndex = parseInt(localStorage.getItem('carColorIndex'));
+      if (isNaN(carColorIndex) || carColorIndex < 0 || carColorIndex >= carColors.length) carColorIndex = 0;
+    }
+    // Função para atualizar cor do carro
+    function updateCarColor() {
+      const svg = playerCar.querySelector('svg');
+      if (!svg) return;
+      const grad = svg.querySelector('#carBodyGradient');
+      if (grad) {
+        grad.querySelector('stop[offset="0%"]').setAttribute('stop-color', carColors[carColorIndex].grad1);
+        grad.querySelector('stop[offset="100%"]').setAttribute('stop-color', carColors[carColorIndex].grad2);
+      }
+      // Atualizar elementos do carro
+      const palette = carElementPalettes[carColorIndex];
+      // Vidro
+      const glass = svg.querySelector('rect[x="16"][y="26"]');
+      if (glass) glass.setAttribute('fill', palette.glass);
+      // Detalhe central
+      const detail = svg.querySelector('rect[x="20"][y="18"]');
+      if (detail) detail.setAttribute('fill', palette.detail);
+      // Faróis
+      const headlight1 = svg.querySelector('ellipse[cx="14"][cy="16"]');
+      const headlight2 = svg.querySelector('ellipse[cx="34"][cy="16"]');
+      if (headlight1) headlight1.setAttribute('fill', palette.headlight);
+      if (headlight2) headlight2.setAttribute('fill', palette.headlight);
+      // Spoiler dianteiro
+      const spoiler = svg.querySelector('rect[x="10"][y="8"]');
+      if (spoiler) spoiler.setAttribute('fill', palette.spoiler);
+      // Spoiler traseiro
+      const spoilerTraseiro = svg.querySelector('rect[x="6"][y="60"]');
+      if (spoilerTraseiro) spoilerTraseiro.setAttribute('fill', palette.spoiler);
+      // Pneus e rodas
+      const tire1 = svg.querySelector('ellipse[cx="12"][cy="68"]');
+      const tire2 = svg.querySelector('ellipse[cx="36"][cy="68"]');
+      const tire3 = svg.querySelector('ellipse[cx="12"][cy="22"]');
+      const tire4 = svg.querySelector('ellipse[cx="36"][cy="22"]');
+      if (tire1) { tire1.setAttribute('fill', palette.tire); tire1.setAttribute('stroke', palette.rim); }
+      if (tire2) { tire2.setAttribute('fill', palette.tire); tire2.setAttribute('stroke', palette.rim); }
+      if (tire3) { tire3.setAttribute('fill', palette.tire); tire3.setAttribute('stroke', palette.rim); }
+      if (tire4) { tire4.setAttribute('fill', palette.tire); tire4.setAttribute('stroke', palette.rim); }
+      // Atualizar tema do jogo
+      const theme = themeColors[carColorIndex];
+      document.documentElement.style.setProperty('--theme-primary', theme.primary);
+      document.documentElement.style.setProperty('--theme-secondary', theme.secondary);
+      document.documentElement.style.setProperty('--theme-highlight', theme.highlight);
+      document.documentElement.style.setProperty('--theme-bg', theme.bg);
+      document.documentElement.style.setProperty('--theme-shadow', theme.shadow);
+      // Botões
+      document.documentElement.style.setProperty('--theme-btn-bg', theme.bg);
+      document.documentElement.style.setProperty('--theme-btn-text', theme.primary);
+      document.documentElement.style.setProperty('--theme-btn-border', theme.shadow);
+      document.documentElement.style.setProperty('--theme-btn-hover-bg', theme.primary);
+      document.documentElement.style.setProperty('--theme-btn-hover-text', theme.bg);
+    }
+    // Chamar updateCarColor() ao iniciar o jogo para garantir cor inicial
+    updateCarColor();
+
+    // --- MENU DE COR DO CARRO ---
+    const carColorBtn = document.getElementById('carColorBtn');
+    // Criar modal
+    const colorModal = document.createElement('div');
+    colorModal.id = 'colorModal';
+    colorModal.style.position = 'fixed';
+    colorModal.style.top = '0';
+    colorModal.style.left = '0';
+    colorModal.style.right = '0';
+    colorModal.style.bottom = '0';
+    colorModal.style.background = 'rgba(10,16,24,0.92)';
+    colorModal.style.display = 'none';
+    colorModal.style.flexDirection = 'column';
+    colorModal.style.alignItems = 'center';
+    colorModal.style.justifyContent = 'center';
+    colorModal.style.zIndex = '10001';
+    colorModal.style.fontFamily = "'Orbitron', Arial, sans-serif";
+    colorModal.innerHTML = `
+      <div style="font-size:2em;font-weight:bold;margin-bottom:18px;color:#fff;text-shadow:0 2px 12px #000a,0 2px 16px var(--theme-primary);">Escolha a Cor do Carro</div>
+      <div id="colorOptions" style="display:flex;flex-wrap:wrap;gap:18px;justify-content:center;margin-bottom:24px;"></div>
+      <button id="closeColorModal" style="font-size:1.1em;padding:10px 32px;border-radius:8px;background:#00eaff;color:#181c28;border:none;box-shadow:0 2px 12px #00eaff33;cursor:pointer;font-family:'Orbitron',Arial,sans-serif;font-weight:bold;">Fechar</button>
+    `;
+    document.body.appendChild(colorModal);
+    // Preencher opções de cor
+    const colorOptions = colorModal.querySelector('#colorOptions');
+    carColors.forEach((c, i) => {
+      const btn = document.createElement('button');
+      btn.style.width = '54px';
+      btn.style.height = '54px';
+      btn.style.borderRadius = '50%';
+      btn.style.border = i === carColorIndex ? '4px solid #ffd600' : '3px solid #00eaff44';
+      btn.style.background = `linear-gradient(135deg, ${c.grad1} 60%, ${c.grad2} 100%)`;
+      btn.style.margin = '4px';
+      btn.style.cursor = 'pointer';
+      btn.style.boxShadow = '0 2px 12px #00eaff33';
+      btn.title = `Cor ${i+1}`;
+      btn.onclick = () => {
+        carColorIndex = i;
+        localStorage.setItem('carColorIndex', carColorIndex);
+        updateCarColor();
+        // Atualizar bordas
+        colorOptions.querySelectorAll('button').forEach((b, j) => {
+          b.style.border = j === carColorIndex ? '4px solid #ffd600' : '3px solid #00eaff44';
+        });
+      };
+      colorOptions.appendChild(btn);
+    });
+    // Abrir modal
+    carColorBtn.onclick = () => {
+      colorModal.style.display = 'flex';
+    };
+    // Fechar modal
+    colorModal.querySelector('#closeColorModal').onclick = () => {
+      colorModal.style.display = 'none';
+    };
+    // Fechar ao clicar fora
+    colorModal.addEventListener('click', e => {
+      if (e.target === colorModal) colorModal.style.display = 'none';
+    });
+
+    // --- ATUALIZAÇÃO DA BARRA DE VELOCIDADE VERTICAL ---
+    function updateVerticalSpeedBar() {
+      const bar = document.getElementById('verticalBarInner');
+      if (!bar) return;
+      // Velocidade máxima = 350 km/h (carSpeed * 12)
+      let kmh = Math.round(carSpeed * 12);
+      let percent = Math.min(1, kmh / 350);
+      bar.style.height = (percent * 100) + '%';
+      // Gradiente dinâmico (opcional):
+      bar.style.background = `linear-gradient(0deg, var(--theme-primary) 60%, var(--theme-highlight) 100%)`;
+    }
+    // Atualiza o HUD de vidas
+    function updateLivesHUD() {
+      if (livesHUD) {
+        livesHUD.textContent = 'Vidas: ' + lives;
+        livesHUD.style.color = lives === 1 ? '#ff1744' : '#fff';
+        livesHUD.style.textShadow = lives === 1 ? '0 2px 8px #ff1744,0 2px 12px #000a' : '0 2px 8px #000a';
+      }
+    }
+
+    // Música de fundo
+    const bgMusic = document.getElementById('bgMusic');
+    if (bgMusic) {
+      // Tentar autoplay (alguns navegadores exigem interação)
+      function tryPlayMusic() {
+        bgMusic.volume = 0.5;
+        const playPromise = bgMusic.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(() => {
+            // Tentar novamente ao interagir
+            document.body.addEventListener('click', () => bgMusic.play(), { once: true });
+            document.body.addEventListener('keydown', () => bgMusic.play(), { once: true });
+          });
+        }
+      }
+      tryPlayMusic();
+      // Se for pausado por algum motivo, reiniciar
+      bgMusic.addEventListener('pause', () => {
+        if (!bgMusic.ended) setTimeout(() => bgMusic.play(), 200);
+      });
+    }
+  </script>
+</body>
+</html> 

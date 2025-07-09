@@ -493,6 +493,9 @@
       letter-spacing: 1px;
       transition: color 0.2s, text-shadow 0.2s;
     }
+    .opponent .car-svg {
+      transform: scaleY(-1);
+    }
   </style>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
 </head>
@@ -586,6 +589,7 @@
     <!-- Removido o título da barra -->
   </div>
   <audio id="overtakeSound" src="https://cdn.pixabay.com/audio/2022/10/16/audio_12b6b1b6e2.mp3"></audio>
+  <audio id="bgMusic" src="music.mp3" loop autoplay></audio>
   <script>
     const gameArea = document.getElementById('gameArea');
     const playerCar = document.getElementById('playerCar');
@@ -818,60 +822,314 @@
 
     // 2. Limitar número de adversários simultâneos:
     const MAX_OPPONENTS = 6;
+
+    // --- NOVOS TIPOS DE ADVERSÁRIOS ---
+    const OPPONENT_TYPES = [
+      {
+        type: 'normal',
+        width: 40,
+        height: 70,
+        speedMin: 5,
+        speedMax: 9,
+        canChangeLane: true,
+        svg: () => `<svg class='car-svg' viewBox='0 0 40 70'>
+        <defs>
+          <linearGradient id='normalBody' x1='0' y1='0' x2='0' y2='1'>
+            <stop offset='0%' stop-color='#e57373'/>
+            <stop offset='100%' stop-color='#b71c1c'/>
+          </linearGradient>
+        </defs>
+        <!-- Sombra -->
+        <ellipse cx='20' cy='66' rx='13' ry='6' fill='#0005'/>
+        <!-- Rodas -->
+        <rect x='3' y='10' width='6' height='16' rx='2' fill='#222'/>
+        <rect x='31' y='10' width='6' height='16' rx='2' fill='#222'/>
+        <rect x='3' y='44' width='6' height='16' rx='2' fill='#222'/>
+        <rect x='31' y='44' width='6' height='16' rx='2' fill='#222'/>
+        <!-- Corpo -->
+        <rect x='8' y='8' width='24' height='54' rx='8' fill='url(#normalBody)' stroke='#fff' stroke-width='1.5'/>
+        <!-- Para-brisa -->
+        <rect x='12' y='12' width='16' height='12' rx='4' fill='#b3e5fc' stroke='#fff' stroke-width='0.7'/>
+        <!-- Portas -->
+        <rect x='13' y='26' width='14' height='22' rx='3' fill='#fff1' stroke='#fff' stroke-width='0.5'/>
+        <!-- Faróis -->
+        <ellipse cx='14' cy='10' rx='2' ry='2' fill='#fff'/>
+        <ellipse cx='26' cy='10' rx='2' ry='2' fill='#fff'/>
+        <!-- Lanternas -->
+        <ellipse cx='14' cy='62' rx='2' ry='1.2' fill='#ff1744'/>
+        <ellipse cx='26' cy='62' rx='2' ry='1.2' fill='#ff1744'/>
+      </svg>`
+      },
+      {
+        type: 'esportivo',
+        width: 44,
+        height: 62,
+        speedMin: 8,
+        speedMax: 13,
+        canChangeLane: true,
+        svg: () => `<svg class='car-svg' viewBox='0 0 44 62'>
+          <defs>
+            <linearGradient id='sportBody' x1='0' y1='0' x2='0' y2='1'>
+              <stop offset='0%' stop-color='#ffd600'/>
+              <stop offset='100%' stop-color='#ff9800'/>
+            </linearGradient>
+            <linearGradient id='sportShadow' x1='0' y1='1' x2='0' y2='0'>
+              <stop offset='0%' stop-color='#0008'/>
+              <stop offset='100%' stop-color='transparent'/>
+            </linearGradient>
+          </defs>
+          <!-- Sombra -->
+          <ellipse cx='22' cy='58' rx='15' ry='5' fill='url(#sportShadow)'/>
+          <!-- Rodas -->
+          <ellipse cx='10' cy='12' rx='4' ry='7' fill='#222'/>
+          <ellipse cx='34' cy='12' rx='4' ry='7' fill='#222'/>
+          <ellipse cx='10' cy='50' rx='4' ry='7' fill='#222'/>
+          <ellipse cx='34' cy='50' rx='4' ry='7' fill='#222'/>
+          <!-- Corpo principal -->
+          <rect x='7' y='8' width='30' height='46' rx='13' fill='url(#sportBody)' stroke='#222' stroke-width='2'/>
+          <!-- Faixa preta central -->
+          <rect x='19' y='8' width='6' height='46' rx='2.5' fill='#222' opacity='0.95'/>
+          <!-- Para-brisa -->
+          <rect x='13' y='14' width='18' height='10' rx='4' fill='#b3e5fc' stroke='#fff' stroke-width='0.7'/>
+          <!-- Teto -->
+          <rect x='15' y='26' width='14' height='12' rx='3' fill='#fff2' stroke='#fff' stroke-width='0.5'/>
+          <!-- Aerofólio traseiro -->
+          <rect x='10' y='54' width='24' height='5' rx='2.5' fill='#222'/>
+          <rect x='13' y='56' width='18' height='3' rx='1.5' fill='#ffd600'/>
+          <!-- Faróis -->
+          <ellipse cx='15' cy='10' rx='2' ry='1.2' fill='#fff'/>
+          <ellipse cx='29' cy='10' rx='2' ry='1.2' fill='#fff'/>
+          <!-- Lanternas -->
+          <ellipse cx='15' cy='54' rx='2' ry='1.2' fill='#ff1744'/>
+          <ellipse cx='29' cy='54' rx='2' ry='1.2' fill='#ff1744'/>
+          <!-- Detalhes laterais -->
+          <rect x='7' y='22' width='4' height='18' rx='2' fill='#222' opacity='0.5'/>
+          <rect x='33' y='22' width='4' height='18' rx='2' fill='#222' opacity='0.5'/>
+        </svg>`
+      },
+      {
+        type: 'onibus',
+        width: 44,
+        height: 120,
+        speedMin: 3.5,
+        speedMax: 5.5,
+        canChangeLane: false,
+        svg: () => `<svg class='car-svg' viewBox='0 0 44 120'>
+          <defs>
+            <linearGradient id='busBody' x1='0' y1='0' x2='0' y2='1'>
+              <stop offset='0%' stop-color='#ffd600'/>
+              <stop offset='100%' stop-color='#ff9800'/>
+            </linearGradient>
+          </defs>
+          <!-- Sombra -->
+          <ellipse cx='22' cy='116' rx='18' ry='7' fill='#0005'/>
+          <!-- Rodas -->
+          <rect x='2' y='16' width='7' height='18' rx='2' fill='#222'/>
+          <rect x='35' y='16' width='7' height='18' rx='2' fill='#222'/>
+          <rect x='2' y='86' width='7' height='18' rx='2' fill='#222'/>
+          <rect x='35' y='86' width='7' height='18' rx='2' fill='#222'/>
+          <!-- Corpo -->
+          <rect x='7' y='8' width='30' height='100' rx='10' fill='url(#busBody)' stroke='#fff' stroke-width='2'/>
+          <!-- Janelas -->
+          <rect x='10' y='14' width='24' height='18' rx='4' fill='#fffde7'/>
+          <rect x='10' y='36' width='24' height='16' rx='3' fill='#b3e5fc'/>
+          <rect x='10' y='54' width='24' height='16' rx='3' fill='#b3e5fc'/>
+          <rect x='10' y='72' width='24' height='16' rx='3' fill='#b3e5fc'/>
+          <!-- Portas -->
+          <rect x='18' y='92' width='8' height='16' rx='2' fill='#fff2' stroke='#fff' stroke-width='0.5'/>
+          <!-- Faróis -->
+          <ellipse cx='15' cy='10' rx='2' ry='1.2' fill='#fff'/>
+          <ellipse cx='29' cy='10' rx='2' ry='1.2' fill='#fff'/>
+          <!-- Lanternas -->
+          <ellipse cx='15' cy='108' rx='2' ry='1.2' fill='#ff1744'/>
+          <ellipse cx='29' cy='108' rx='2' ry='1.2' fill='#ff1744'/>
+        </svg>`
+      },
+      {
+        type: 'caminhonete',
+        width: 50,
+        height: 76,
+        speedMin: 6,
+        speedMax: 10,
+        canChangeLane: true,
+        svg: () => `<svg class='car-svg' viewBox='0 0 50 76'>
+          <defs>
+            <linearGradient id='truckBody' x1='0' y1='0' x2='0' y2='1'>
+              <stop offset='0%' stop-color='#8d6e63'/>
+              <stop offset='100%' stop-color='#4e342e'/>
+            </linearGradient>
+          </defs>
+          <!-- Sombra -->
+          <ellipse cx='25' cy='72' rx='18' ry='7' fill='#0005'/>
+          <!-- Rodas -->
+          <rect x='4' y='14' width='8' height='16' rx='2' fill='#222'/>
+          <rect x='38' y='14' width='8' height='16' rx='2' fill='#222'/>
+          <rect x='4' y='48' width='8' height='16' rx='2' fill='#222'/>
+          <rect x='38' y='48' width='8' height='16' rx='2' fill='#222'/>
+          <!-- Corpo -->
+          <rect x='10' y='10' width='30' height='56' rx='10' fill='url(#truckBody)' stroke='#fff' stroke-width='2'/>
+          <!-- Caçamba -->
+          <rect x='10' y='38' width='30' height='18' rx='4' fill='#a1887f' stroke='#fff' stroke-width='0.7'/>
+          <!-- Para-brisa -->
+          <rect x='16' y='14' width='18' height='10' rx='3' fill='#b3e5fc' stroke='#fff' stroke-width='0.7'/>
+          <!-- Portas -->
+          <rect x='18' y='26' width='14' height='18' rx='2' fill='#fff1' stroke='#fff' stroke-width='0.5'/>
+          <!-- Faróis -->
+          <ellipse cx='18' cy='12' rx='2' ry='1.2' fill='#fff'/>
+          <ellipse cx='32' cy='12' rx='2' ry='1.2' fill='#fff'/>
+          <!-- Lanternas -->
+          <ellipse cx='18' cy='64' rx='2' ry='1.2' fill='#ff1744'/>
+          <ellipse cx='32' cy='64' rx='2' ry='1.2' fill='#ff1744'/>
+        </svg>`
+      },
+      {
+        type: 'moto',
+        width: 22,
+        height: 48,
+        speedMin: 10,
+        speedMax: 15,
+        canChangeLane: true,
+        svg: () => `<svg class='car-svg' viewBox='0 0 22 48'>
+          <defs>
+            <linearGradient id='motoBody' x1='0' y1='0' x2='0' y2='1'>
+              <stop offset='0%' stop-color='#f06292'/>
+              <stop offset='100%' stop-color='#ad1457'/>
+            </linearGradient>
+          </defs>
+          <!-- Sombra -->
+          <ellipse cx='11' cy='46' rx='8' ry='3' fill='#0005'/>
+          <!-- Rodas -->
+          <ellipse cx='11' cy='10' rx='4' ry='2' fill='#222'/>
+          <ellipse cx='11' cy='38' rx='4' ry='2' fill='#222'/>
+          <!-- Corpo -->
+          <rect x='7' y='14' width='8' height='18' rx='3' fill='url(#motoBody)' stroke='#fff' stroke-width='1'/>
+          <!-- Banco -->
+          <rect x='9' y='20' width='4' height='8' rx='1.5' fill='#333'/>
+          <!-- Guidão -->
+          <rect x='4' y='8' width='14' height='2' rx='1' fill='#888'/>
+          <!-- Farol -->
+          <ellipse cx='11' cy='8' rx='2' ry='1' fill='#fff'/>
+          <!-- Lanterna -->
+          <ellipse cx='11' cy='34' rx='1.2' ry='0.7' fill='#ff1744'/>
+        </svg>`
+      }
+    ];
+
+    // --- FIAT UNO COM ESCADA ---
+    const UNINHO_SPEED = 350 / 12; // 350 km/h convertido para o sistema do jogo
+    const UNINHO_WIDTH = 38;
+    const UNINHO_HEIGHT = 68;
+    function getUninhoSVG() {
+      return `<svg class='car-svg' viewBox='0 0 38 68'>
+        <defs>
+          <linearGradient id='unoBody' x1='0' y1='0' x2='0' y2='1'>
+            <stop offset='0%' stop-color='#bdbdbd'/>
+            <stop offset='100%' stop-color='#757575'/>
+          </linearGradient>
+        </defs>
+        <!-- Sombra -->
+        <ellipse cx='19' cy='64' rx='13' ry='5' fill='#0005'/>
+        <!-- Rodas -->
+        <rect x='2' y='10' width='5' height='14' rx='2' fill='#222'/>
+        <rect x='31' y='10' width='5' height='14' rx='2' fill='#222'/>
+        <rect x='2' y='44' width='5' height='14' rx='2' fill='#222'/>
+        <rect x='31' y='44' width='5' height='14' rx='2' fill='#222'/>
+        <!-- Corpo do Uno -->
+        <rect x='7' y='8' width='24' height='52' rx='5' fill='url(#unoBody)' stroke='#333' stroke-width='1.2'/>
+        <!-- Para-brisa -->
+        <rect x='11' y='12' width='16' height='10' rx='3' fill='#b3e5fc' stroke='#fff' stroke-width='0.7'/>
+        <!-- Portas -->
+        <rect x='12' y='24' width='14' height='20' rx='2' fill='#fff1' stroke='#fff' stroke-width='0.4'/>
+        <!-- Faróis -->
+        <ellipse cx='14' cy='10' rx='2' ry='1.2' fill='#fff'/>
+        <ellipse cx='24' cy='10' rx='2' ry='1.2' fill='#fff'/>
+        <!-- Lanternas -->
+        <ellipse cx='14' cy='58' rx='2' ry='1.2' fill='#ff1744'/>
+        <ellipse cx='24' cy='58' rx='2' ry='1.2' fill='#ff1744'/>
+        <!-- Escada -->
+        <rect x='16' y='16' width='6' height='36' rx='1.2' fill='#bfa94a' stroke='#8d6e00' stroke-width='0.7'/>
+        <rect x='16' y='20' width='6' height='2' rx='0.7' fill='#8d6e00'/>
+        <rect x='16' y='26' width='6' height='2' rx='0.7' fill='#8d6e00'/>
+        <rect x='16' y='32' width='6' height='2' rx='0.7' fill='#8d6e00'/>
+        <rect x='16' y='38' width='6' height='2' rx='0.7' fill='#8d6e00'/>
+        <rect x='16' y='44' width='6' height='2' rx='0.7' fill='#8d6e00'/>
+      </svg>`;
+    }
+
+    let nextUninhoAt = 1000;
+
+    function spawnUninho() {
+      const minX = 10;
+      const maxX = areaWidth - UNINHO_WIDTH - 10;
+      const x = Math.random() * (maxX - minX) + minX;
+      const uno = document.createElement('div');
+      uno.className = 'opponent';
+      uno.style.left = x + 'px';
+      uno.style.top = '-' + UNINHO_HEIGHT + 'px';
+      uno.style.width = UNINHO_WIDTH + 'px';
+      uno.style.height = UNINHO_HEIGHT + 'px';
+      uno.innerHTML = getUninhoSVG();
+      gameArea.appendChild(uno);
+      opponents.push({
+        el: uno,
+        x: x,
+        y: -UNINHO_HEIGHT,
+        speed: UNINHO_SPEED,
+        overtaken: false,
+        laneTarget: x,
+        laneChangeTimer: 0,
+        _collided: false,
+        type: 'uninho',
+        width: UNINHO_WIDTH,
+        height: UNINHO_HEIGHT,
+        canChangeLane: false
+      });
+    }
+
     function createOpponent() {
       if (opponents.length >= MAX_OPPONENTS) return;
+      // Escolher tipo aleatório
+      const typeIndex = Math.floor(Math.random() * OPPONENT_TYPES.length);
+      const typeObj = OPPONENT_TYPES[typeIndex];
       const minX = 10;
-      const maxX = areaWidth - carWidth - 10;
+      const maxX = areaWidth - typeObj.width - 10;
       const x = Math.random() * (maxX - minX) + minX;
       const opp = document.createElement('div');
       opp.className = 'opponent';
       opp.style.left = x + 'px';
-      opp.style.top = '-70px';
-      const [bodyColor, glassColor] = randomOpponentColor();
-      // Velocidade individual do adversário
-      const oppSpeed = Math.random() * 4 + 5; // entre 5 e 9
-      // Adversário moderno SVG
-      opp.innerHTML = `<svg class='car-svg' viewBox='0 0 40 70'>
-        <defs>
-          <radialGradient id='oppBodyGrad' cx='50%' cy='30%' r='80%'>
-            <stop offset='0%' stop-color='${glassColor}'/>
-            <stop offset='100%' stop-color='${bodyColor}'/>
-          </radialGradient>
-          <linearGradient id='oppShadow' x1='0' y1='1' x2='0' y2='0'>
-            <stop offset='0%' stop-color='#0008'/>
-            <stop offset='100%' stop-color='transparent'/>
-          </linearGradient>
-        </defs>
-        <ellipse cx='20' cy='66' rx='14' ry='6' fill='url(#oppShadow)'/>
-        <rect x='6' y='10' width='28' height='50' rx='10' fill='url(#oppBodyGrad)' stroke='#fff' stroke-width='2'/>
-        <rect x='12' y='18' width='16' height='18' rx='4' fill='${glassColor}'/>
-        <ellipse cx='12' cy='62' rx='6' ry='6' fill='#222' stroke='#888' stroke-width='2'/>
-        <ellipse cx='28' cy='62' rx='6' ry='6' fill='#222' stroke='#888' stroke-width='2'/>
-        <rect x='8' y='8' width='24' height='8' rx='4' fill='${bodyColor}'/>
-        <rect x='10' y='4' width='20' height='6' rx='3' fill='#fffde7'/>
-        <ellipse cx='10' cy='16' rx='3' ry='2' fill='#fffde7' opacity='0.7'/>
-        <ellipse cx='30' cy='16' rx='3' ry="2" fill="#fffde7" opacity="0.7"/>
-        <rect x='8' y='58' width='24' height='6' rx='3' fill='#fff'/>
-        <ellipse cx='10' cy='62' rx='2' ry='2' fill='#fff' opacity='0.7'/>
-        <ellipse cx='30' cy='62' rx='2' ry='2' fill='#fff' opacity='0.7'/>
-        <ellipse cx='20' cy='14' rx='8' ry='2' fill='#fff' opacity='0.2'/>
-      </svg>`;
+      opp.style.top = '-' + typeObj.height + 'px';
+      opp.style.width = typeObj.width + 'px';
+      opp.style.height = typeObj.height + 'px';
+      opp.innerHTML = typeObj.svg();
       gameArea.appendChild(opp);
-      // Adversário pode trocar de faixa (leve IA)
-      const changeLane = Math.random() < 0.5;
+      // Velocidade individual do adversário
+      const oppSpeed = Math.random() * (typeObj.speedMax - typeObj.speedMin) + typeObj.speedMin;
+      // IA: troca de faixa (apenas se permitido)
       let laneTarget = x;
-      if (changeLane) {
+      let laneChangeTimer = 0;
+      if (typeObj.canChangeLane) {
+        if (typeObj.type === 'esportivo') {
+          // Esportivo troca mais rápido
+          laneChangeTimer = Math.random() * 60 + 30;
         laneTarget = Math.random() * (maxX - minX) + minX;
+        } else {
+          laneChangeTimer = Math.random() * 120 + 60;
+          if (Math.random() < 0.5) laneTarget = Math.random() * (maxX - minX) + minX;
+        }
       }
       opponents.push({
         el: opp,
         x: x,
-        y: -70,
+        y: -typeObj.height,
         speed: oppSpeed,
         overtaken: false,
         laneTarget: laneTarget,
-        laneChangeTimer: Math.random() * 120 + 60,
-        _collided: false // Adicionado para controlar colisão
+        laneChangeTimer: laneChangeTimer,
+        _collided: false,
+        type: typeObj.type,
+        width: typeObj.width,
+        height: typeObj.height,
+        canChangeLane: typeObj.canChangeLane
       });
     }
 
@@ -879,36 +1137,58 @@
       for (let i = opponents.length - 1; i >= 0; i--) {
         const opp = opponents[i];
         // IA: troca de faixa
-        if (opp.laneTarget !== undefined) {
+        if (opp.canChangeLane && opp.laneTarget !== undefined) {
           opp.laneChangeTimer -= dt;
           if (opp.laneChangeTimer > 0) {
-            opp.x += (opp.laneTarget - opp.x) * 0.01 * dt;
+            opp.x += (opp.laneTarget - opp.x) * (opp.type === 'esportivo' ? 0.018 : 0.01) * dt;
+          } else if (opp.type === 'esportivo') {
+            // Esportivo troca de faixa frequentemente
+            const minX = 10;
+            const maxX = areaWidth - opp.width - 10;
+            opp.laneTarget = Math.random() * (maxX - minX) + minX;
+            opp.laneChangeTimer = Math.random() * 60 + 30;
           }
         }
         opp.y += opp.speed * dt;
         opp.el.style.top = opp.y + 'px';
         opp.el.style.left = opp.x + 'px';
+        // Ajustar tamanho visual
+        opp.el.style.width = opp.width + 'px';
+        opp.el.style.height = opp.height + 'px';
         const tolerance = 8;
+        // Colisão considerando tamanho do adversário (apenas com o jogador)
         if (
-          opp.y + carHeight - tolerance > carY &&
+          opp.y + opp.height - tolerance > carY &&
           opp.y + tolerance < carY + carHeight &&
-          opp.x + carWidth - tolerance > carX &&
+          opp.x + opp.width - tolerance > carX &&
           opp.x + tolerance < carX + carWidth
         ) {
-          // Colisão: desacelera e empurra levemente
-          carSpeed *= 0.6;
-          carVX += (opp.x < carX ? 1.2 : -1.2);
-          // Sistema de vidas
           if (!opp._collided) {
-            lives--;
-            opp._collided = true;
-            updateLivesHUD();
-            showExplosion(); // Explosão ao colidir
-            if (lives <= 0) {
-              endGame();
+            if (opp.type === 'uninho') {
+              // Colidiu com o Uninho: perde uma vida (não Game Over instantâneo)
+              carSpeed *= 0.6;
+              carVX += (opp.x < carX ? 1.2 : -1.2);
+              lives--;
+              opp._collided = true;
+              updateLivesHUD();
+              showExplosion();
+              if (lives <= 0) {
+                endGame();
+              }
+            } else {
+              carSpeed *= 0.6;
+              carVX += (opp.x < carX ? 1.2 : -1.2);
+              lives--;
+              opp._collided = true;
+              updateLivesHUD();
+              showExplosion();
+              if (lives <= 0) {
+                endGame();
+              }
             }
           }
         }
+        // NÃO checar colisão entre adversários!
         if (!opp.overtaken && opp.y > carY + carHeight) {
           overtakes++;
           opp.overtaken = true;
@@ -916,7 +1196,7 @@
           overtakeSound.currentTime = 0;
           overtakeSound.play();
         }
-        if (opp.y > areaHeight) {
+        if (opp.y > areaHeight + 40) { // margem extra para ônibus
           gameArea.removeChild(opp.el);
           opponents.splice(i, 1);
         }
@@ -926,6 +1206,11 @@
     function updateScore(dt) {
       distance += carSpeed * dt * 0.03;
       scoreDiv.textContent = 'Distância: ' + Math.floor(distance) + ' m';
+      // Aparição do Uninho
+      if (distance >= nextUninhoAt) {
+        spawnUninho();
+        nextUninhoAt += 1000;
+      }
     }
 
     function updateAnalogSpeedometer() {
@@ -1146,9 +1431,11 @@
     startScreen.style.bottom = '0';
     startScreen.style.margin = '0';
 
-    // Botão de iniciar
+    // Botão de iniciar (garantir atribuição do evento após innerHTML)
     const startBtn = startScreen.querySelector('#startBtn');
-    startBtn.onclick = startGame;
+    if (startBtn) {
+      startBtn.onclick = startGame;
+    }
 
     // 2. Pausa e reinício modernos
     // Botão de pausa no HUD
@@ -1203,6 +1490,19 @@
         pauseBtn.onclick();
       }
     });
+
+    // --- PAUSE AUTOMÁTICO AO PERDER O FOCO DA ABA ---
+    window.addEventListener('blur', () => {
+      if (gameRunning && !paused) {
+        pauseBtn.onclick();
+      }
+    });
+    // Opcional: Retomar automaticamente ao voltar para a aba
+    // window.addEventListener('focus', () => {
+    //   if (paused && pauseScreen.style.display === 'flex') {
+    //     pauseScreen.querySelector('#resumeBtn').onclick();
+    //   }
+    // });
 
     // --- CORES DISPONÍVEIS ---
     const carColors = [
@@ -1383,6 +1683,28 @@
         livesHUD.style.color = lives === 1 ? '#ff1744' : '#fff';
         livesHUD.style.textShadow = lives === 1 ? '0 2px 8px #ff1744,0 2px 12px #000a' : '0 2px 8px #000a';
       }
+    }
+
+    // Música de fundo
+    const bgMusic = document.getElementById('bgMusic');
+    if (bgMusic) {
+      // Tentar autoplay (alguns navegadores exigem interação)
+      function tryPlayMusic() {
+        bgMusic.volume = 0.5;
+        const playPromise = bgMusic.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(() => {
+            // Tentar novamente ao interagir
+            document.body.addEventListener('click', () => bgMusic.play(), { once: true });
+            document.body.addEventListener('keydown', () => bgMusic.play(), { once: true });
+          });
+        }
+      }
+      tryPlayMusic();
+      // Se for pausado por algum motivo, reiniciar
+      bgMusic.addEventListener('pause', () => {
+        if (!bgMusic.ended) setTimeout(() => bgMusic.play(), 200);
+      });
     }
   </script>
 </body>
