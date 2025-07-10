@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Corrida de Carros</title>
+  <title>Neon Race</title>
   <style>
     :root {
       --theme-primary: #00eaff;
@@ -263,12 +263,16 @@
     .pass-line {
       position: absolute;
       width: 10px;
-      height: 36px;
-      background: linear-gradient(180deg, var(--theme-primary) 60%, #000 100%);
-      opacity: 0.8;
+      height: 44px;
+      background: linear-gradient(180deg, #fff 70%, #e0e0e0 100%);
+      opacity: 0.92;
       z-index: 2;
-      border-radius: 6px;
-      box-shadow: 0 0 8px var(--theme-shadow);
+      border-radius: 8px;
+      /* Removido glow e borda */
+      filter: none;
+      box-shadow: none;
+      border: none;
+      transition: background 0.2s;
     }
     /* --- CARROS --- */
     .car, .opponent {
@@ -517,27 +521,35 @@
             <stop offset="0%" stop-color="#000a"/>
             <stop offset="100%" stop-color="transparent"/>
           </linearGradient>
+          <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+            <feMerge>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
         </defs>
-        <!-- Sombra -->
-        <ellipse cx="24" cy="76" rx="16" ry="7" fill="url(#carShadow)"/>
         <!-- Pneus finos e rodas iluminadas -->
-        <ellipse cx="12" cy="68" rx="5" ry="7" fill="#222" stroke="#00eaff" stroke-width="2"/>
-        <ellipse cx="36" cy="68" rx="5" ry="7" fill="#222" stroke="#00eaff" stroke-width="2"/>
-        <ellipse cx="12" cy="22" rx="5" ry="7" fill="#222" stroke="#00eaff" stroke-width="2"/>
-        <ellipse cx="36" cy="22" rx="5" ry="7" fill="#222" stroke="#00eaff" stroke-width="2"/>
+        <ellipse cx="12" cy="68" rx="5" ry="7" fill="#181c28" stroke="#00eaff" stroke-width="2" filter="url(#glow)"/>
+        <ellipse cx="36" cy="68" rx="5" ry="7" fill="#181c28" stroke="#00eaff" stroke-width="2" filter="url(#glow)"/>
+        <ellipse cx="12" cy="22" rx="5" ry="7" fill="#181c28" stroke="#00eaff" stroke-width="2" filter="url(#glow)"/>
+        <ellipse cx="36" cy="22" rx="5" ry="7" fill="#181c28" stroke="#00eaff" stroke-width="2" filter="url(#glow)"/>
         <!-- Corpo do carro -->
-        <rect x="8" y="18" width="32" height="44" rx="14" fill="url(#carBodyGradient)" stroke="#fff" stroke-width="2"/>
+        <rect x="8" y="18" width="32" height="44" rx="14" fill="url(#carBodyGradient)" stroke="#fff" stroke-width="2" filter="url(#glow)"/>
         <!-- Para-choque -->
-        <rect x="6" y="60" width="36" height="8" rx="4" fill="#00eaff"/>
+        <rect x="6" y="60" width="36" height="8" rx="4" fill="#00eaff" filter="url(#glow)"/>
         <!-- Detalhe neon central -->
-        <rect x="20" y="18" width="8" height="44" rx="4" fill="#fff" opacity="0.18"/>
+        <rect x="20" y="18" width="8" height="44" rx="4" fill="#fff" opacity="0.22" filter="url(#glow)"/>
         <!-- Faróis -->
-        <ellipse cx="14" cy="16" rx="3" ry="2" fill="#fff"/>
-        <ellipse cx="34" cy="16" rx="3" ry="2" fill="#fff"/>
+        <ellipse cx="14" cy="16" rx="3" ry="2" fill="#fff" filter="url(#glow)"/>
+        <ellipse cx="34" cy="16" rx="3" ry="2" fill="#fff" filter="url(#glow)"/>
         <!-- Vidro -->
-        <rect x="16" y="26" width="16" height="16" rx="6" fill="#b3e5fc" opacity="0.8"/>
+        <rect x="16" y="26" width="16" height="16" rx="6" fill="#b3e5fc" opacity="0.92" filter="url(#glow)"/>
         <!-- Spoiler -->
-        <rect x="10" y="8" width="28" height="6" rx="3" fill="#00eaff"/>
+        <rect x="10" y="8" width="28" height="6" rx="3" fill="#00eaff" filter="url(#glow)"/>
+        <!-- Detalhes extras -->
+        <rect x="18" y="38" width="12" height="6" rx="2" fill="#fff" opacity="0.12"/>
+        <ellipse cx="24" cy="40" rx="6" ry="2" fill="#00eaff" opacity="0.18"/>
       </svg>
       <div class="energy-container"></div>
     </div>
@@ -547,7 +559,7 @@
       <button onclick="restartGame()">Jogar Novamente</button>
     </div>
     <div id="startScreen">
-      <div style="font-size:1.5em; margin-bottom:20px;">Corrida de Carros</div>
+      <div style="font-size:1.5em; margin-bottom:20px;">Neon Race 2</div>
       <div style="font-size:1em; margin-bottom:20px;">Use as setas ← → para virar suavemente.<br>Seta ↑ para acelerar, ↓ para frear.<br>Ultrapasse os rivais, pegue turbos e divirta-se!<br>Pressione qualquer tecla para começar.</div>
       <button onclick="startGame()">Iniciar</button>
     </div>
@@ -651,16 +663,33 @@
     }
     drawAnalogSpeedometer();
 
-    // Faixas de ultrapassagem laterais
+    // Faixas de ultrapassagem laterais e centrais
     function createPassLines() {
+      // Laterais
       for (let side = 0; side <= 1; side++) {
-        for (let i = 0; i < 600 / 48; i++) {
+        for (let i = 0; i < 600 / 60; i++) {
           const line = document.createElement('div');
           line.className = 'pass-line';
-          line.style.left = side === 0 ? '24px' : '368px';
-          line.style.top = (i * 48 + 8) + 'px';
+          line.style.left = side === 0 ? '22px' : '368px';
+          line.style.top = (i * 60 + 8) + 'px';
           gameArea.appendChild(line);
         }
+      }
+      // Faixa central cortada, fina e discreta
+      centerSegments = [];
+      for (let i = 0; i < 600 / 56; i++) {
+        const seg = document.createElement('div');
+        seg.style.position = 'absolute';
+        seg.style.left = '199px';
+        seg.style.width = '4px';
+        seg.style.height = '32px';
+        seg.style.top = (i * 56 + 8) + 'px';
+        seg.style.background = 'linear-gradient(180deg, #fff 80%, #e0e0e0 100%)';
+        seg.style.opacity = '0.38';
+        seg.style.borderRadius = '2px';
+        seg.style.zIndex = '2';
+        gameArea.appendChild(seg);
+        centerSegments.push({el: seg, y: i * 56 + 8});
       }
     }
     createPassLines();
@@ -673,20 +702,23 @@
     let carY = areaHeight - carHeight - 30;
     let carSpeed = 7;
     let carSpeedTarget = 7;
-    // Parâmetros de física levemente realista
-    let acceleration = 0.18; // aceleração
-    let deceleration = 0.22; // frenagem
-    let grip = 0.18; // aderência base
-    let driftAmount = 0.11; // drift
+    // Parâmetros de física mais realistas
+    let acceleration = 0.13; // aceleração mais suave
+    let deceleration = 0.09; // frenagem menos eficiente
+    let grip = 0.11; // aderência base reduzida
+    let driftAmount = 0.17; // drift mais acentuado
     let maxSpeed = 29.2; // 350 km/h
     let minSpeed = 2.5;
     let maxVX = 7.5;
     let rollingSpeed = 4;
-    let driftGrip = 0.06; // aderência durante drift
+    let driftGrip = 0.05; // aderência durante drift
+    let lateralInertia = 0.93; // inércia lateral (quanto menor, mais "pesado" para virar)
     let collisionBounce = 0.5; // rebate ao colidir
     let collisionSlow = 0.7; // desacelera ao colidir
     let carVX = 0;
     let carVXTarget = 0;
+    // Controle de imunidade após colisão lateral
+    let lateralCollisionCooldown = false;
     let opponents = [];
     let roadLines = [];
     let windLines = [];
@@ -799,6 +831,12 @@
         if (top > areaHeight) top -= 600;
         passLines[i].style.top = top + 'px';
       }
+      // Atualizar segmentos centrais
+      for (let i = 0; i < centerSegments.length; i++) {
+        centerSegments[i].y += speed;
+        if (centerSegments[i].y > areaHeight) centerSegments[i].y -= (centerSegments.length * 56);
+        centerSegments[i].el.style.top = centerSegments[i].y + 'px';
+      }
     }
 
     function setCarPosition() {
@@ -838,26 +876,37 @@
             <stop offset='0%' stop-color='#e57373'/>
             <stop offset='100%' stop-color='#b71c1c'/>
           </linearGradient>
+          <filter id='glowNormal' x='-40%' y='-40%' width='180%' height='180%'>
+            <feGaussianBlur stdDeviation='2.5' result='coloredBlur'/>
+            <feMerge>
+              <feMergeNode in='coloredBlur'/>
+              <feMergeNode in='SourceGraphic'/>
+            </feMerge>
+          </filter>
         </defs>
         <!-- Sombra -->
         <ellipse cx='20' cy='66' rx='13' ry='6' fill='#0005'/>
         <!-- Rodas -->
-        <rect x='3' y='10' width='6' height='16' rx='2' fill='#222'/>
-        <rect x='31' y='10' width='6' height='16' rx='2' fill='#222'/>
-        <rect x='3' y='44' width='6' height='16' rx='2' fill='#222'/>
-        <rect x='31' y='44' width='6' height='16' rx='2' fill='#222'/>
+        <rect x='3' y='10' width='6' height='16' rx='2' fill='#222' filter='url(#glowNormal)'/>
+        <rect x='31' y='10' width='6' height='16' rx='2' fill='#222' filter='url(#glowNormal)'/>
+        <rect x='3' y='44' width='6' height='16' rx='2' fill='#222' filter='url(#glowNormal)'/>
+        <rect x='31' y='44' width='6' height='16' rx='2' fill='#222' filter='url(#glowNormal)'/>
         <!-- Corpo -->
-        <rect x='8' y='8' width='24' height='54' rx='8' fill='url(#normalBody)' stroke='#fff' stroke-width='1.5'/>
+        <rect x='8' y='8' width='24' height='54' rx='8' fill='url(#normalBody)' stroke='#fff' stroke-width='1.5' filter='url(#glowNormal)'/>
         <!-- Para-brisa -->
-        <rect x='12' y='12' width='16' height='12' rx='4' fill='#b3e5fc' stroke='#fff' stroke-width='0.7'/>
+        <rect x='12' y='12' width='16' height='12' rx='4' fill='#b3e5fc' stroke='#fff' stroke-width='0.7' filter='url(#glowNormal)'/>
         <!-- Portas -->
         <rect x='13' y='26' width='14' height='22' rx='3' fill='#fff1' stroke='#fff' stroke-width='0.5'/>
         <!-- Faróis -->
-        <ellipse cx='14' cy='10' rx='2' ry='2' fill='#fff'/>
-        <ellipse cx='26' cy='10' rx='2' ry='2' fill='#fff'/>
+        <ellipse cx='14' cy='10' rx='2' ry='2' fill='#fff' filter='url(#glowNormal)'/>
+        <ellipse cx='26' cy='10' rx='2' ry='2' fill='#fff' filter='url(#glowNormal)'/>
         <!-- Lanternas -->
         <ellipse cx='14' cy='62' rx='2' ry='1.2' fill='#ff1744'/>
         <ellipse cx='26' cy='62' rx='2' ry='1.2' fill='#ff1744'/>
+        <!-- Detalhes extras -->
+        <rect x='16' y='36' width='8' height='4' rx='1.5' fill='#fff' opacity='0.10'/>
+        <ellipse cx='20' cy='35' rx='7' ry='2' fill='#e57373' opacity='0.10'/>
+        <rect x='10' y='20' width='20' height='4' rx='2' fill='#fff' opacity='0.08'/>
       </svg>`
       },
       {
@@ -877,34 +926,44 @@
               <stop offset='0%' stop-color='#0008'/>
               <stop offset='100%' stop-color='transparent'/>
             </linearGradient>
+            <filter id='glowSport' x='-40%' y='-40%' width='180%' height='180%'>
+              <feGaussianBlur stdDeviation='2.5' result='coloredBlur'/>
+              <feMerge>
+                <feMergeNode in='coloredBlur'/>
+                <feMergeNode in='SourceGraphic'/>
+              </feMerge>
+            </filter>
           </defs>
           <!-- Sombra -->
           <ellipse cx='22' cy='58' rx='15' ry='5' fill='url(#sportShadow)'/>
           <!-- Rodas -->
-          <ellipse cx='10' cy='12' rx='4' ry='7' fill='#222'/>
-          <ellipse cx='34' cy='12' rx='4' ry='7' fill='#222'/>
-          <ellipse cx='10' cy='50' rx='4' ry='7' fill='#222'/>
-          <ellipse cx='34' cy='50' rx='4' ry='7' fill='#222'/>
+          <ellipse cx='10' cy='12' rx='4' ry='7' fill='#222' filter='url(#glowSport)'/>
+          <ellipse cx='34' cy='12' rx='4' ry='7' fill='#222' filter='url(#glowSport)'/>
+          <ellipse cx='10' cy='50' rx='4' ry='7' fill='#222' filter='url(#glowSport)'/>
+          <ellipse cx='34' cy='50' rx='4' ry='7' fill='#222' filter='url(#glowSport)'/>
           <!-- Corpo principal -->
-          <rect x='7' y='8' width='30' height='46' rx='13' fill='url(#sportBody)' stroke='#222' stroke-width='2'/>
+          <rect x='7' y='8' width='30' height='46' rx='13' fill='url(#sportBody)' stroke='#222' stroke-width='2' filter='url(#glowSport)'/>
           <!-- Faixa preta central -->
           <rect x='19' y='8' width='6' height='46' rx='2.5' fill='#222' opacity='0.95'/>
           <!-- Para-brisa -->
-          <rect x='13' y='14' width='18' height='10' rx='4' fill='#b3e5fc' stroke='#fff' stroke-width='0.7'/>
+          <rect x='13' y='14' width='18' height='10' rx='4' fill='#b3e5fc' stroke='#fff' stroke-width='0.7' filter='url(#glowSport)'/>
           <!-- Teto -->
           <rect x='15' y='26' width='14' height='12' rx='3' fill='#fff2' stroke='#fff' stroke-width='0.5'/>
           <!-- Aerofólio traseiro -->
-          <rect x='10' y='54' width='24' height='5' rx='2.5' fill='#222'/>
-          <rect x='13' y='56' width='18' height='3' rx='1.5' fill='#ffd600'/>
+          <rect x='10' y='54' width='24' height='5' rx='2.5' fill='#222' filter='url(#glowSport)'/>
+          <rect x='13' y='56' width='18' height='3' rx='1.5' fill='#ffd600' filter='url(#glowSport)'/>
           <!-- Faróis -->
-          <ellipse cx='15' cy='10' rx='2' ry='1.2' fill='#fff'/>
-          <ellipse cx='29' cy='10' rx='2' ry='1.2' fill='#fff'/>
+          <ellipse cx='15' cy='10' rx='2' ry='1.2' fill='#fff' filter='url(#glowSport)'/>
+          <ellipse cx='29' cy='10' rx='2' ry='1.2' fill='#fff' filter='url(#glowSport)'/>
           <!-- Lanternas -->
           <ellipse cx='15' cy='54' rx='2' ry='1.2' fill='#ff1744'/>
           <ellipse cx='29' cy='54' rx='2' ry='1.2' fill='#ff1744'/>
           <!-- Detalhes laterais -->
           <rect x='7' y='22' width='4' height='18' rx='2' fill='#222' opacity='0.5'/>
           <rect x='33' y='22' width='4' height='18' rx='2' fill='#222' opacity='0.5'/>
+          <!-- Detalhes extras -->
+          <ellipse cx='22' cy='32' rx='7' ry='2' fill='#fff' opacity='0.10'/>
+          <rect x='14' y='36' width='16' height='4' rx='2' fill='#ffd600' opacity='0.10'/>
         </svg>`
       },
       {
@@ -920,29 +979,39 @@
               <stop offset='0%' stop-color='#ffd600'/>
               <stop offset='100%' stop-color='#ff9800'/>
             </linearGradient>
+            <filter id='glowBus' x='-40%' y='-40%' width='180%' height='180%'>
+              <feGaussianBlur stdDeviation='2.5' result='coloredBlur'/>
+              <feMerge>
+                <feMergeNode in='coloredBlur'/>
+                <feMergeNode in='SourceGraphic'/>
+              </feMerge>
+            </filter>
           </defs>
           <!-- Sombra -->
           <ellipse cx='22' cy='116' rx='18' ry='7' fill='#0005'/>
           <!-- Rodas -->
-          <rect x='2' y='16' width='7' height='18' rx='2' fill='#222'/>
-          <rect x='35' y='16' width='7' height='18' rx='2' fill='#222'/>
-          <rect x='2' y='86' width='7' height='18' rx='2' fill='#222'/>
-          <rect x='35' y='86' width='7' height='18' rx='2' fill='#222'/>
+          <rect x='2' y='16' width='7' height='18' rx='2' fill='#222' filter='url(#glowBus)'/>
+          <rect x='35' y='16' width='7' height='18' rx='2' fill='#222' filter='url(#glowBus)'/>
+          <rect x='2' y='86' width='7' height='18' rx='2' fill='#222' filter='url(#glowBus)'/>
+          <rect x='35' y='86' width='7' height='18' rx='2' fill='#222' filter='url(#glowBus)'/>
           <!-- Corpo -->
-          <rect x='7' y='8' width='30' height='100' rx='10' fill='url(#busBody)' stroke='#fff' stroke-width='2'/>
+          <rect x='7' y='8' width='30' height='100' rx='10' fill='url(#busBody)' stroke='#fff' stroke-width='2' filter='url(#glowBus)'/>
           <!-- Janelas -->
-          <rect x='10' y='14' width='24' height='18' rx='4' fill='#fffde7'/>
-          <rect x='10' y='36' width='24' height='16' rx='3' fill='#b3e5fc'/>
-          <rect x='10' y='54' width='24' height='16' rx='3' fill='#b3e5fc'/>
-          <rect x='10' y='72' width='24' height='16' rx='3' fill='#b3e5fc'/>
+          <rect x='10' y='14' width='24' height='18' rx='4' fill='#fffde7' filter='url(#glowBus)'/>
+          <rect x='10' y='36' width='24' height='16' rx='3' fill='#b3e5fc' filter='url(#glowBus)'/>
+          <rect x='10' y='54' width='24' height='16' rx='3' fill='#b3e5fc' filter='url(#glowBus)'/>
+          <rect x='10' y='72' width='24' height='16' rx='3' fill='#b3e5fc' filter='url(#glowBus)'/>
           <!-- Portas -->
           <rect x='18' y='92' width='8' height='16' rx='2' fill='#fff2' stroke='#fff' stroke-width='0.5'/>
           <!-- Faróis -->
-          <ellipse cx='15' cy='10' rx='2' ry='1.2' fill='#fff'/>
-          <ellipse cx='29' cy='10' rx='2' ry='1.2' fill='#fff'/>
+          <ellipse cx='15' cy='10' rx='2' ry='1.2' fill='#fff' filter='url(#glowBus)'/>
+          <ellipse cx='29' cy='10' rx='2' ry='1.2' fill='#fff' filter='url(#glowBus)'/>
           <!-- Lanternas -->
           <ellipse cx='15' cy='108' rx='2' ry='1.2' fill='#ff1744'/>
           <ellipse cx='29' cy='108' rx='2' ry='1.2' fill='#ff1744'/>
+          <!-- Detalhes extras -->
+          <rect x='14' y='40' width='16' height='6' rx='2' fill='#fff' opacity='0.08'/>
+          <ellipse cx='22' cy='60' rx='10' ry='3' fill='#ffd600' opacity='0.08'/>
         </svg>`
       },
       {
@@ -958,28 +1027,38 @@
               <stop offset='0%' stop-color='#8d6e63'/>
               <stop offset='100%' stop-color='#4e342e'/>
             </linearGradient>
+            <filter id='glowTruck' x='-40%' y='-40%' width='180%' height='180%'>
+              <feGaussianBlur stdDeviation='2.5' result='coloredBlur'/>
+              <feMerge>
+                <feMergeNode in='coloredBlur'/>
+                <feMergeNode in='SourceGraphic'/>
+              </feMerge>
+            </filter>
           </defs>
           <!-- Sombra -->
           <ellipse cx='25' cy='72' rx='18' ry='7' fill='#0005'/>
           <!-- Rodas -->
-          <rect x='4' y='14' width='8' height='16' rx='2' fill='#222'/>
-          <rect x='38' y='14' width='8' height='16' rx='2' fill='#222'/>
-          <rect x='4' y='48' width='8' height='16' rx='2' fill='#222'/>
-          <rect x='38' y='48' width='8' height='16' rx='2' fill='#222'/>
+          <rect x='4' y='14' width='8' height='16' rx='2' fill='#222' filter='url(#glowTruck)'/>
+          <rect x='38' y='14' width='8' height='16' rx='2' fill='#222' filter='url(#glowTruck)'/>
+          <rect x='4' y='48' width='8' height='16' rx='2' fill='#222' filter='url(#glowTruck)'/>
+          <rect x='38' y='48' width='8' height='16' rx='2' fill='#222' filter='url(#glowTruck)'/>
           <!-- Corpo -->
-          <rect x='10' y='10' width='30' height='56' rx='10' fill='url(#truckBody)' stroke='#fff' stroke-width='2'/>
+          <rect x='10' y='10' width='30' height='56' rx='10' fill='url(#truckBody)' stroke='#fff' stroke-width='2' filter='url(#glowTruck)'/>
           <!-- Caçamba -->
-          <rect x='10' y='38' width='30' height='18' rx='4' fill='#a1887f' stroke='#fff' stroke-width='0.7'/>
+          <rect x='10' y='38' width='30' height='18' rx='4' fill='#a1887f' stroke='#fff' stroke-width='0.7' filter='url(#glowTruck)'/>
           <!-- Para-brisa -->
-          <rect x='16' y='14' width='18' height='10' rx='3' fill='#b3e5fc' stroke='#fff' stroke-width='0.7'/>
+          <rect x='16' y='14' width='18' height='10' rx='3' fill='#b3e5fc' stroke='#fff' stroke-width='0.7' filter='url(#glowTruck)'/>
           <!-- Portas -->
           <rect x='18' y='26' width='14' height='18' rx='2' fill='#fff1' stroke='#fff' stroke-width='0.5'/>
           <!-- Faróis -->
-          <ellipse cx='18' cy='12' rx='2' ry='1.2' fill='#fff'/>
-          <ellipse cx='32' cy='12' rx='2' ry='1.2' fill='#fff'/>
+          <ellipse cx='18' cy='12' rx='2' ry='1.2' fill='#fff' filter='url(#glowTruck)'/>
+          <ellipse cx='32' cy='12' rx='2' ry='1.2' fill='#fff' filter='url(#glowTruck)'/>
           <!-- Lanternas -->
           <ellipse cx='18' cy='64' rx='2' ry='1.2' fill='#ff1744'/>
           <ellipse cx='32' cy='64' rx='2' ry='1.2' fill='#ff1744'/>
+          <!-- Detalhes extras -->
+          <rect x='20' y='44' width='10' height='6' rx='2' fill='#fff' opacity='0.10'/>
+          <ellipse cx='25' cy='38' rx='8' ry='2' fill='#8d6e63' opacity='0.10'/>
         </svg>`
       },
       {
@@ -995,22 +1074,31 @@
               <stop offset='0%' stop-color='#f06292'/>
               <stop offset='100%' stop-color='#ad1457'/>
             </linearGradient>
+            <filter id='glowMoto' x='-40%' y='-40%' width='180%' height='180%'>
+              <feGaussianBlur stdDeviation='2' result='coloredBlur'/>
+              <feMerge>
+                <feMergeNode in='coloredBlur'/>
+                <feMergeNode in='SourceGraphic'/>
+              </feMerge>
+            </filter>
           </defs>
           <!-- Sombra -->
           <ellipse cx='11' cy='46' rx='8' ry='3' fill='#0005'/>
           <!-- Rodas -->
-          <ellipse cx='11' cy='10' rx='4' ry='2' fill='#222'/>
-          <ellipse cx='11' cy='38' rx='4' ry='2' fill='#222'/>
+          <ellipse cx='11' cy='10' rx='4' ry='2' fill='#222' filter='url(#glowMoto)'/>
+          <ellipse cx='11' cy='38' rx='4' ry='2' fill='#222' filter='url(#glowMoto)'/>
           <!-- Corpo -->
-          <rect x='7' y='14' width='8' height='18' rx='3' fill='url(#motoBody)' stroke='#fff' stroke-width='1'/>
+          <rect x='7' y='14' width='8' height='18' rx='3' fill='url(#motoBody)' stroke='#fff' stroke-width='1' filter='url(#glowMoto)'/>
           <!-- Banco -->
-          <rect x='9' y='20' width='4' height='8' rx='1.5' fill='#333'/>
+          <rect x='9' y='20' width='4' height='8' rx='1.5' fill='#333' filter='url(#glowMoto)'/>
           <!-- Guidão -->
-          <rect x='4' y='8' width='14' height='2' rx='1' fill='#888'/>
+          <rect x='4' y='8' width='14' height='2' rx='1' fill='#888' filter='url(#glowMoto)'/>
           <!-- Farol -->
-          <ellipse cx='11' cy='8' rx='2' ry='1' fill='#fff'/>
+          <ellipse cx='11' cy='8' rx='2' ry='1' fill='#fff' filter='url(#glowMoto)'/>
           <!-- Lanterna -->
           <ellipse cx='11' cy='34' rx='1.2' ry='0.7' fill='#ff1744'/>
+          <!-- Detalhes extras -->
+          <ellipse cx='11' cy='24' rx='5' ry='1.2' fill='#f06292' opacity='0.10'/>
         </svg>`
       }
     ];
@@ -1026,33 +1114,43 @@
             <stop offset='0%' stop-color='#bdbdbd'/>
             <stop offset='100%' stop-color='#757575'/>
           </linearGradient>
+          <filter id='glowUno' x='-40%' y='-40%' width='180%' height='180%'>
+            <feGaussianBlur stdDeviation='2' result='coloredBlur'/>
+            <feMerge>
+              <feMergeNode in='coloredBlur'/>
+              <feMergeNode in='SourceGraphic'/>
+            </feMerge>
+          </filter>
         </defs>
         <!-- Sombra -->
         <ellipse cx='19' cy='64' rx='13' ry='5' fill='#0005'/>
         <!-- Rodas -->
-        <rect x='2' y='10' width='5' height='14' rx='2' fill='#222'/>
-        <rect x='31' y='10' width='5' height='14' rx='2' fill='#222'/>
-        <rect x='2' y='44' width='5' height='14' rx='2' fill='#222'/>
-        <rect x='31' y='44' width='5' height='14' rx='2' fill='#222'/>
+        <rect x='2' y='10' width='5' height='14' rx='2' fill='#222' filter='url(#glowUno)'/>
+        <rect x='31' y='10' width='5' height='14' rx='2' fill='#222' filter='url(#glowUno)'/>
+        <rect x='2' y='44' width='5' height='14' rx='2' fill='#222' filter='url(#glowUno)'/>
+        <rect x='31' y='44' width='5' height='14' rx='2' fill='#222' filter='url(#glowUno)'/>
         <!-- Corpo do Uno -->
-        <rect x='7' y='8' width='24' height='52' rx='5' fill='url(#unoBody)' stroke='#333' stroke-width='1.2'/>
+        <rect x='7' y='8' width='24' height='52' rx='5' fill='url(#unoBody)' stroke='#333' stroke-width='1.2' filter='url(#glowUno)'/>
         <!-- Para-brisa -->
-        <rect x='11' y='12' width='16' height='10' rx='3' fill='#b3e5fc' stroke='#fff' stroke-width='0.7'/>
+        <rect x='11' y='12' width='16' height='10' rx='3' fill='#b3e5fc' stroke='#fff' stroke-width='0.7' filter='url(#glowUno)'/>
         <!-- Portas -->
         <rect x='12' y='24' width='14' height='20' rx='2' fill='#fff1' stroke='#fff' stroke-width='0.4'/>
         <!-- Faróis -->
-        <ellipse cx='14' cy='10' rx='2' ry='1.2' fill='#fff'/>
-        <ellipse cx='24' cy='10' rx='2' ry='1.2' fill='#fff'/>
+        <ellipse cx='14' cy='10' rx='2' ry='1.2' fill='#fff' filter='url(#glowUno)'/>
+        <ellipse cx='24' cy='10' rx='2' ry='1.2' fill='#fff' filter='url(#glowUno)'/>
         <!-- Lanternas -->
         <ellipse cx='14' cy='58' rx='2' ry='1.2' fill='#ff1744'/>
         <ellipse cx='24' cy='58' rx='2' ry='1.2' fill='#ff1744'/>
         <!-- Escada -->
-        <rect x='16' y='16' width='6' height='36' rx='1.2' fill='#bfa94a' stroke='#8d6e00' stroke-width='0.7'/>
+        <rect x='16' y='16' width='6' height='36' rx='1.2' fill='#bfa94a' stroke='#8d6e00' stroke-width='0.7' filter='url(#glowUno)'/>
         <rect x='16' y='20' width='6' height='2' rx='0.7' fill='#8d6e00'/>
         <rect x='16' y='26' width='6' height='2' rx='0.7' fill='#8d6e00'/>
         <rect x='16' y='32' width='6' height='2' rx='0.7' fill='#8d6e00'/>
         <rect x='16' y='38' width='6' height='2' rx='0.7' fill='#8d6e00'/>
         <rect x='16' y='44' width='6' height='2' rx='0.7' fill='#8d6e00'/>
+        <!-- Detalhes extras -->
+        <rect x='14' y='36' width='10' height='4' rx='1.5' fill='#fff' opacity='0.10'/>
+        <ellipse cx='19' cy='34' rx='8' ry='2' fill='#bdbdbd' opacity='0.10'/>
       </svg>`;
     }
 
@@ -1134,6 +1232,81 @@
     }
 
     function updateOpponents(dt) {
+      // --- NOVO: Colisão entre adversários ---
+      // Cooldown de colisão para adversários
+      if (!window._opponentCollisionCooldowns) window._opponentCollisionCooldowns = new WeakMap();
+      // Checar colisão entre todos os pares de adversários
+      for (let i = 0; i < opponents.length; i++) {
+        for (let j = i + 1; j < opponents.length; j++) {
+          const a = opponents[i];
+          const b = opponents[j];
+          // Cooldown para evitar múltiplas colisões seguidas
+          const now = performance.now();
+          const cooldownA = window._opponentCollisionCooldowns.get(a.el) || 0;
+          const cooldownB = window._opponentCollisionCooldowns.get(b.el) || 0;
+          // Tolerância para colisão
+          const tol = 8;
+          if (
+            a.y + a.height - tol > b.y &&
+            a.y + tol < b.y + b.height &&
+            a.x + a.width - tol > b.x &&
+            a.x + tol < b.x + b.width
+          ) {
+            // Se não estiver em cooldown
+            if (now > cooldownA && now > cooldownB) {
+              // Desacelerar ambos
+              a.speed *= 0.7;
+              b.speed *= 0.7;
+              // Empurrar lateralmente se possível
+              if (a.canChangeLane && b.canChangeLane) {
+                if (a.x < b.x) {
+                  a.laneTarget = Math.max(10, a.x - 30);
+                  b.laneTarget = Math.min(areaWidth - b.width - 10, b.x + 30);
+                } else {
+                  a.laneTarget = Math.min(areaWidth - a.width - 10, a.x + 30);
+                  b.laneTarget = Math.max(10, b.x - 30);
+                }
+                a.laneChangeTimer = 60;
+                b.laneChangeTimer = 60;
+              } else if (a.canChangeLane) {
+                a.laneTarget = a.x + (a.x < b.x ? -30 : 30);
+                a.laneChangeTimer = 60;
+              } else if (b.canChangeLane) {
+                b.laneTarget = b.x + (b.x < a.x ? -30 : 30);
+                b.laneChangeTimer = 60;
+              }
+              // Cooldown de 0.5s
+              window._opponentCollisionCooldowns.set(a.el, now + 500);
+              window._opponentCollisionCooldowns.set(b.el, now + 500);
+            }
+          } else {
+            // Se estiverem muito próximos, tentar evitar colisão
+            const closeY = Math.abs((a.y + a.height/2) - (b.y + b.height/2)) < (a.height/2 + b.height/2 + 18);
+            const closeX = Math.abs((a.x + a.width/2) - (b.x + b.width/2)) < (a.width/2 + b.width/2 + 10);
+            if (closeY && closeX) {
+              // Tentar afastar lateralmente
+              if (a.canChangeLane && b.canChangeLane) {
+                if (a.x < b.x) {
+                  a.laneTarget = Math.max(10, a.x - 20);
+                  b.laneTarget = Math.min(areaWidth - b.width - 10, b.x + 20);
+                } else {
+                  a.laneTarget = Math.min(areaWidth - a.width - 10, a.x + 20);
+                  b.laneTarget = Math.max(10, b.x - 20);
+                }
+                a.laneChangeTimer = 40;
+                b.laneChangeTimer = 40;
+              } else if (a.canChangeLane) {
+                a.laneTarget = a.x + (a.x < b.x ? -20 : 20);
+                a.laneChangeTimer = 40;
+              } else if (b.canChangeLane) {
+                b.laneTarget = b.x + (b.x < a.x ? -20 : 20);
+                b.laneChangeTimer = 40;
+              }
+            }
+          }
+        }
+      }
+      // --- FIM NOVO ---
       for (let i = opponents.length - 1; i >= 0; i--) {
         const opp = opponents[i];
         // IA: troca de faixa
@@ -1149,7 +1322,40 @@
             opp.laneChangeTimer = Math.random() * 60 + 30;
           }
         }
-        opp.y += opp.speed * dt;
+        // --- NOVO: Impedir sobreposição vertical entre adversários ---
+        let nextY = opp.y + opp.speed * dt;
+        let blocked = false;
+        for (let j = 0; j < opponents.length; j++) {
+          if (i === j) continue;
+          const other = opponents[j];
+          // Checar se haveria sobreposição na próxima posição
+          const tol = 8;
+          if (
+            nextY + opp.height - tol > other.y &&
+            nextY + tol < other.y + other.height &&
+            opp.x + opp.width - tol > other.x &&
+            opp.x + tol < other.x + other.width
+          ) {
+            // Bloquear avanço, só pode ir até encostar
+            if (opp.y < other.y) {
+              nextY = other.y - opp.height + tol;
+            } else {
+              nextY = other.y + other.height - tol;
+            }
+            blocked = true;
+            // Tentar desviar lateralmente se possível
+            if (opp.canChangeLane) {
+              if (opp.x + opp.width < areaWidth - 20) {
+                opp.laneTarget = opp.x + 30;
+              } else if (opp.x > 20) {
+                opp.laneTarget = opp.x - 30;
+              }
+              opp.laneChangeTimer = 40;
+            }
+            break;
+          }
+        }
+        opp.y = nextY;
         opp.el.style.top = opp.y + 'px';
         opp.el.style.left = opp.x + 'px';
         // Ajustar tamanho visual
@@ -1164,27 +1370,16 @@
           opp.x + tolerance < carX + carWidth
         ) {
           if (!opp._collided) {
-            if (opp.type === 'uninho') {
-              // Colidiu com o Uninho: perde uma vida (não Game Over instantâneo)
-              carSpeed *= 0.6;
-              carVX += (opp.x < carX ? 1.2 : -1.2);
-              lives--;
-              opp._collided = true;
-              updateLivesHUD();
-              showExplosion();
-              if (lives <= 0) {
-                endGame();
-              }
-            } else {
-              carSpeed *= 0.6;
-              carVX += (opp.x < carX ? 1.2 : -1.2);
-              lives--;
-              opp._collided = true;
-              updateLivesHUD();
-              showExplosion();
-              if (lives <= 0) {
-                endGame();
-              }
+            // Rebote proporcional à velocidade
+            let impact = Math.max(1, carSpeed / maxSpeed);
+            carSpeed *= 0.5 + 0.2 * (1 - impact); // maior perda em alta velocidade
+            carVX += (opp.x < carX ? 1.2 : -1.2) * impact;
+            lives--;
+            opp._collided = true;
+            updateLivesHUD();
+            showExplosion();
+            if (lives <= 0) {
+              endGame();
             }
           }
         }
@@ -1254,30 +1449,68 @@
         carSpeedTarget = rollingSpeed;
       }
 
-      // Aceleração/frenagem levemente realista
+      // Aceleração/frenagem mais realista
       if (carSpeed < carSpeedTarget) {
-        carSpeed += acceleration * dt * (1 - carSpeed/maxSpeed);
+        // Aceleração depende da velocidade atual (mais lenta em alta velocidade)
+        let acc = acceleration * (1 - carSpeed / maxSpeed) * dt;
+        carSpeed += acc;
         if (carSpeed > carSpeedTarget) carSpeed = carSpeedTarget;
       } else if (carSpeed > carSpeedTarget) {
-        carSpeed -= deceleration * dt * (1 + carSpeed/maxSpeed*0.7);
+        // Frenagem menos eficiente
+        let dec = deceleration * (1 + carSpeed / maxSpeed * 0.7) * dt;
+        carSpeed -= dec;
         if (carSpeed < carSpeedTarget) carSpeed = carSpeedTarget;
       }
 
-      // Drift e aderência levemente realistas
+      // Drift e aderência mais realistas
       let desiredVX = 0;
       if (keys['a']) desiredVX -= maxVX;
       if (keys['d']) desiredVX += maxVX;
-      // Aderência diminui em alta velocidade
-      let currentGrip = grip * (carSpeed < 14 ? 1.2 : 0.7);
-      carVX += (desiredVX - carVX) * currentGrip * dt;
+      // Parâmetros de drift
+      let currentGrip = grip * (carSpeed < 14 ? 1.2 : 0.5);
+      let currentDriftAmount = driftAmount;
+      let currentLateralInertia = lateralInertia;
+      let driftDecel = 1.0;
+      let driftVisualAngle = 0;
+      // Física realista de drift
+      if (driftActive && carSpeed > 12 && (keys['a'] || keys['d'] || Math.abs(carVX) > 1.5)) {
+        currentGrip *= 0.09; // grip ainda menor
+        currentDriftAmount *= 4.5; // drift super eficiente
+        currentLateralInertia = 0.995; // desliza muito mais
+        driftDecel = 0.997; // quase não desacelera
+        // Ângulo visual de drift proporcional ao carVX
+        driftVisualAngle = Math.max(-28, Math.min(28, -carVX * 2.5));
+      }
       // Drift mais fácil em alta velocidade
       if ((keys['a'] || keys['d']) && carSpeed > 12) {
-        carVX += driftAmount * (desiredVX > 0 ? 1 : -1) * dt * (carSpeed/maxSpeed);
+        carVX += currentDriftAmount * (desiredVX > 0 ? 1 : -1) * dt * (carSpeed / maxSpeed);
+        currentGrip *= 0.7;
       }
+      // Inércia lateral
+      carVX += (desiredVX - carVX) * currentGrip * dt;
+      carVX *= currentLateralInertia;
       // Recuperação lateral suave
       if (!keys['a'] && !keys['d']) {
-        carVX *= (1 - 0.13 * dt);
-        if (Math.abs(carVX) < 0.1) carVX = 0;
+        // Efeito cauda: recuperação ainda mais lenta
+        carVX *= (1 - 0.012 * dt);
+        if (Math.abs(carVX) < 0.08) carVX = 0;
+      }
+      // Menos desaceleração durante drift
+      if (driftActive && carSpeed > 12 && (keys['a'] || keys['d'] || Math.abs(carVX) > 1.5)) {
+        carSpeed *= driftDecel;
+      }
+      // --- Animação visual de drift (carro "andando de lado") ---
+      let tilt = carVX / maxVX * 18;
+      let driftAngle = 0;
+      if (driftActive && carSpeed > 12 && (keys['a'] || keys['d'])) {
+        driftAngle = driftVisualAngle;
+      }
+      // Tremida em velocidade máxima
+      if (carSpeed > maxSpeed - 1) {
+        const shake = Math.sin(Date.now() / 40) * 2;
+        playerCar.style.transform = `rotate(${tilt + driftAngle + shake}deg)`;
+      } else {
+        playerCar.style.transform = `rotate(${tilt + driftAngle}deg)`;
       }
       // Limites laterais
       if (carVX > maxVX) carVX = maxVX;
@@ -1285,13 +1518,35 @@
       carX += carVX * dt;
       if (carX < 0) {
         carX = 0;
-        carVX = 1.5;
+        carVX = Math.abs(carVX) * 0.5;
         carSpeed *= 0.7;
+        // Perder vida ao bater na lateral
+        if (!lateralCollisionCooldown) {
+          lives--;
+          updateLivesHUD();
+          showExplosion();
+          lateralCollisionCooldown = true;
+          if (lives <= 0) {
+            endGame();
+          }
+          setTimeout(() => { lateralCollisionCooldown = false; }, 1000);
+        }
       }
       if (carX > areaWidth - carWidth) {
         carX = areaWidth - carWidth;
-        carVX = -1.5;
+        carVX = -Math.abs(carVX) * 0.5;
         carSpeed *= 0.7;
+        // Perder vida ao bater na lateral
+        if (!lateralCollisionCooldown) {
+          lives--;
+          updateLivesHUD();
+          showExplosion();
+          lateralCollisionCooldown = true;
+          if (lives <= 0) {
+            endGame();
+          }
+          setTimeout(() => { lateralCollisionCooldown = false; }, 1000);
+        }
       }
       setCarPosition();
       animationId = requestAnimationFrame(gameLoop);
@@ -1381,8 +1636,18 @@
     }
 
     document.addEventListener('keydown', (e) => {
-      const key = e.key.toLowerCase();
+      let key = e.key.toLowerCase();
+      // Mapear setas para WASD
+      if (e.key === 'ArrowUp') key = 'w';
+      if (e.key === 'ArrowDown') key = 's';
+      if (e.key === 'ArrowLeft') key = 'a';
+      if (e.key === 'ArrowRight') key = 'd';
       keys[key] = true;
+      // Ativar drift com Shift
+      if (e.key === 'Shift' || e.key === 'ShiftLeft' || e.key === 'ShiftRight') {
+        driftActive = true;
+        showDriftTitle();
+      }
       if (!gameRunning && startScreen.style.display !== 'none') {
         startGame();
         return;
@@ -1399,8 +1664,18 @@
       }
     });
     document.addEventListener('keyup', (e) => {
-      const key = e.key.toLowerCase();
+      let key = e.key.toLowerCase();
+      // Mapear setas para WASD
+      if (e.key === 'ArrowUp') key = 'w';
+      if (e.key === 'ArrowDown') key = 's';
+      if (e.key === 'ArrowLeft') key = 'a';
+      if (e.key === 'ArrowRight') key = 'd';
       keys[key] = false;
+      // Desativar drift ao soltar Shift
+      if (e.key === 'Shift' || e.key === 'ShiftLeft' || e.key === 'ShiftRight') {
+        driftActive = false;
+        hideDriftTitle();
+      }
       // Ao soltar W, desacelerar até rolagem
       if (key === 'w') {
         if (!keys['s']) carSpeedTarget = rollingSpeed;
@@ -1413,8 +1688,12 @@
 
     // 1. Tela de início minimalista
     startScreen.innerHTML = `
-      <div style="font-size:1.6em;font-weight:bold;letter-spacing:2px;margin-bottom:14px;">Corrida Neon</div>
-      <div style="font-size:1em;margin-bottom:22px;opacity:0.8;">Aperte <b>Jogar</b> ou <b>W</b> para começar<br><span style='font-size:0.9em;opacity:0.7;'>Controles: WASD</span></div>
+      <div style="font-size:1.6em;font-weight:bold;letter-spacing:2px;margin-bottom:14px;">Neon Race</div>
+      <div style="font-size:1em;margin-bottom:22px;opacity:0.95;color:#fff;text-align:center;">
+        Aperte <b>Jogar</b> ou <b>W</b> para começar<br>
+        <span style='font-size:0.9em;opacity:0.85;'>Controles: <b>WASD</b> <span style='font-size:1.1em;'>ou</span> <b>Setas do Teclado</b></span><br>
+        <span style='font-size:0.98em;display:inline-block;margin-top:10px;letter-spacing:1px;'><b>Segure Shift para fazer <span style="color:#ffd600;text-shadow:0 2px 8px #000a;">DRIFT</span> nas curvas!</b></span>
+      </div>
       <button id="startBtn" style="font-size:1em;padding:10px 32px;border-radius:10px;background:#00eaff;color:#181c28;border:none;box-shadow:0 2px 12px #00eaff33;cursor:pointer;font-family:'Orbitron',Arial,sans-serif;font-weight:bold;">Jogar</button>
     `;
     startScreen.style.background = 'rgba(10,16,24,0.92)';
@@ -1506,44 +1785,58 @@
 
     // --- CORES DISPONÍVEIS ---
     const carColors = [
-      {grad1: '#00eaff', grad2: '#1976d2'}, // Azul Neon (padrão)
-      {grad1: '#ff1744', grad2: '#ff8a65'}, // Vermelho
-      {grad1: '#ffd600', grad2: '#ff9800'}, // Amarelo
-      {grad1: '#00e676', grad2: '#00bfae'}, // Verde
-      {grad1: '#ab47bc', grad2: '#7c4dff'}, // Roxo
-      {grad1: '#fff', grad2: '#bdbdbd'},    // Branco
-      {grad1: '#ffb300', grad2: '#ff6f00'}, // Laranja
-      {grad1: '#00bcd4', grad2: '#0097a7'}, // Ciano
-      {grad1: '#f06292', grad2: '#ad1457'}, // Rosa
-      {grad1: '#263238', grad2: '#607d8b'}  // Cinza
+      // Lendárias originais:
+      {grad1: '#ffe066', grad2: '#bfa94a'}, // Dourado Supremo
+      {grad1: '#e5e4e2', grad2: '#b3c6ff'}, // Platina Neon
+      {grad1: '#ff0080', grad2: '#00ffe7'}, // Another Planet
+      {grad1: '#181c28', grad2: '#00eaff'}, // Preto Ônix com Neon Azul
+      {grad1: '#b87333', grad2: '#4a7c59'}, // Oxidized Copper
+      {grad1: '#9966cc', grad2: '#4a148c'}, // Amethyst Mystery
+      {grad1: '#ff1744', grad2: '#ff6f00'}, // Red Meteor
+      {grad1: '#b3e5fc', grad2: '#ffffff'}, // Icy Crystal
+      {grad1: '#c0c0c0', grad2: '#1a1a2d'}, // Silver of the Night
+      {grad1: '#00e676', grad2: '#181818'}, // Verdant Eclipse
+      {grad1: '#ffb3d9', grad2: '#1a1a1a'}, // Midnight Sakura
+      {grad1: '#a8a8a8', grad2: '#0066ff'}, // Titanium Core
+      {grad1: '#00ff88', grad2: '#ffff00'}, // Uranium Glass
+      {grad1: '#ffffff', grad2: '#b3e5fc'}, // Absolute Diamond
+      {grad1: '#00ffaa', grad2: '#8a2be2'}  // Alien Polymer
     ];
-    // Cores de tema associadas a cada cor do carro
+    // Temas para as cores lendárias
     const themeColors = [
-      // primária, secundária, highlight
-      {primary: '#00eaff', secondary: '#1976d2', highlight: '#ffd600', bg: '#181c28', shadow: '#00eaff22'},
-      {primary: '#ff1744', secondary: '#ff8a65', highlight: '#ffd600', bg: '#2d1a1a', shadow: '#ff174422'},
-      {primary: '#ffd600', secondary: '#ff9800', highlight: '#00eaff', bg: '#2d2a1a', shadow: '#ffd60022'},
-      {primary: '#00e676', secondary: '#00bfae', highlight: '#ffd600', bg: '#18281c', shadow: '#00e67622'},
-      {primary: '#ab47bc', secondary: '#7c4dff', highlight: '#ffd600', bg: '#221a2d', shadow: '#ab47bc22'},
-      {primary: '#fff', secondary: '#bdbdbd', highlight: '#00eaff', bg: '#232323', shadow: '#fff2'},
-      {primary: '#ffb300', secondary: '#ff6f00', highlight: '#00eaff', bg: '#2d241a', shadow: '#ffb30022'},
-      {primary: '#00bcd4', secondary: '#0097a7', highlight: '#ffd600', bg: '#18282a', shadow: '#00bcd422'},
-      {primary: '#f06292', secondary: '#ad1457', highlight: '#ffd600', bg: '#2d1a23', shadow: '#f0629222'},
-      {primary: '#263238', secondary: '#607d8b', highlight: '#ffd600', bg: '#181c28', shadow: '#26323822'}
+      {primary: '#ffe066', secondary: '#bfa94a', highlight: '#fff', bg: '#2d2600', shadow: '#ffe06644'}, // Dourado Supremo
+      {primary: '#b3c6ff', secondary: '#e5e4e2', highlight: '#00eaff', bg: '#232a3a', shadow: '#b3c6ff44'}, // Platina Neon
+      {primary: '#ff0080', secondary: '#00ffe7', highlight: '#ffd600', bg: '#1a1a2d', shadow: '#ff008044'}, // Another Planet
+      {primary: '#00eaff', secondary: '#181c28', highlight: '#ffd600', bg: '#181c28', shadow: '#00eaff44'}, // Preto Ônix com Neon Azul
+      {primary: '#b87333', secondary: '#4a7c59', highlight: '#ffd600', bg: '#2d1a0a', shadow: '#b8733344'}, // Oxidized Copper
+      {primary: '#9966cc', secondary: '#4a148c', highlight: '#ffd600', bg: '#1a0a2d', shadow: '#9966cc44'}, // Amethyst Mystery
+      {primary: '#ff1744', secondary: '#ff6f00', highlight: '#ffd600', bg: '#2d1010', shadow: '#ff174444'}, // Red Meteor
+      {primary: '#b3e5fc', secondary: '#ffffff', highlight: '#00eaff', bg: '#1a2d2d', shadow: '#b3e5fc44'}, // Icy Crystal
+      {primary: '#c0c0c0', secondary: '#1a1a2d', highlight: '#00eaff', bg: '#1a1a2d', shadow: '#c0c0c044'}, // Silver of the Night
+      {primary: '#00e676', secondary: '#181818', highlight: '#ffd600', bg: '#0a1a0a', shadow: '#00e67644'}, // Verdant Eclipse
+      {primary: '#ffb3d9', secondary: '#1a1a1a', highlight: '#ffd600', bg: '#1a0a1a', shadow: '#ffb3d944'}, // Midnight Sakura
+      {primary: '#a8a8a8', secondary: '#0066ff', highlight: '#00eaff', bg: '#1a1a2d', shadow: '#a8a8a844'}, // Titanium Core
+      {primary: '#00ff88', secondary: '#ffff00', highlight: '#fff', bg: '#0a2d0a', shadow: '#00ff8844'}, // Uranium Glass
+      {primary: '#ffffff', secondary: '#b3e5fc', highlight: '#00eaff', bg: '#1a2d2d', shadow: '#ffffff44'}, // Absolute Diamond
+      {primary: '#00ffaa', secondary: '#8a2be2', highlight: '#ffd600', bg: '#0a2d1a', shadow: '#00ffaa44'}  // Alien Polymer
     ];
-    // Paleta de elementos do carro para cada tema
+    // Paleta de elementos para as cores lendárias
     const carElementPalettes = [
-      // Corpo, vidro, detalhe central, farol, spoiler, pneus, roda
-      {glass: '#b3e5fc', detail: '#fff', headlight: '#fff', spoiler: '#00eaff', tire: '#222', rim: '#00eaff'}, // Azul
-      {glass: '#ffd6d6', detail: '#fff', headlight: '#fffde7', spoiler: '#ff1744', tire: '#222', rim: '#ff1744'}, // Vermelho
-      {glass: '#fffde7', detail: '#fff', headlight: '#fff', spoiler: '#ffd600', tire: '#222', rim: '#ffd600'}, // Amarelo
-      {glass: '#b2fef7', detail: '#fff', headlight: '#fff', spoiler: '#00e676', tire: '#222', rim: '#00e676'}, // Verde
-      {glass: '#e1bee7', detail: '#fff', headlight: '#fff', spoiler: '#ab47bc', tire: '#222', rim: '#ab47bc'}, // Roxo
-      {glass: '#fff', detail: '#bdbdbd', headlight: '#fff', spoiler: '#fff', tire: '#222', rim: '#bdbdbd'}, // Branco
-      {glass: '#ffe0b2', detail: '#fff', headlight: '#fff', spoiler: '#ffb300', tire: '#222', rim: '#ffb300'}, // Laranja
-      {glass: '#b2ebf2', detail: '#fff', headlight: '#fff', spoiler: '#00bcd4', tire: '#222', rim: '#00bcd4'}, // Ciano
-      {glass: '#f8bbd0', detail: '#fff', headlight: '#fff', spoiler: '#f06292', tire: '#222', rim: '#f06292'}, // Rosa
-      {glass: '#b0bec5', detail: '#fff', headlight: '#fff', spoiler: '#263238', tire: '#222', rim: '#607d8b'}  // Cinza
+      {glass: '#fffbe6', detail: '#fff', headlight: '#fff', spoiler: '#bfa94a', tire: '#bfa94a', rim: '#ffe066'}, // Dourado Supremo
+      {glass: '#b3c6ff', detail: '#e5e4e2', headlight: '#fff', spoiler: '#b3c6ff', tire: '#222', rim: '#b3c6ff'}, // Platina Neon
+      {glass: '#fff', detail: '#ff0080', headlight: '#ffd600', spoiler: '#00ffe7', tire: '#222', rim: '#ff0080'}, // Another Planet
+      {glass: '#b3e5fc', detail: '#fff', headlight: '#fff', spoiler: '#00eaff', tire: '#222', rim: '#00eaff'}, // Preto Ônix com Neon Azul
+      {glass: '#e6d7c3', detail: '#b87333', headlight: '#ffd600', spoiler: '#4a7c59', tire: '#8b4513', rim: '#b87333'}, // Oxidized Copper
+      {glass: '#e1bee7', detail: '#9966cc', headlight: '#ffd600', spoiler: '#4a148c', tire: '#4a148c', rim: '#9966cc'}, // Amethyst Mystery
+      {glass: '#ffb3b3', detail: '#ff1744', headlight: '#ffd600', spoiler: '#ff6f00', tire: '#8b0000', rim: '#ff1744'}, // Red Meteor
+      {glass: '#ffffff', detail: '#b3e5fc', headlight: '#00eaff', spoiler: '#ffffff', tire: '#b0b0b0', rim: '#b3e5fc'}, // Icy Crystal
+      {glass: '#e0e0e0', detail: '#c0c0c0', headlight: '#00eaff', spoiler: '#1a1a2d', tire: '#444444', rim: '#c0c0c0'}, // Silver of the Night
+      {glass: '#b2fef7', detail: '#00e676', headlight: '#ffd600', spoiler: '#181818', tire: '#0a1a0a', rim: '#00e676'}, // Verdant Eclipse
+      {glass: '#ffe6f2', detail: '#ffb3d9', headlight: '#ffd600', spoiler: '#1a1a1a', tire: '#2d0a1a', rim: '#ffb3d9'}, // Midnight Sakura
+      {glass: '#d0d0d0', detail: '#a8a8a8', headlight: '#00eaff', spoiler: '#0066ff', tire: '#444444', rim: '#a8a8a8'}, // Titanium Core
+      {glass: '#b2fef7', detail: '#00ff88', headlight: '#ffff00', spoiler: '#ffff00', tire: '#0a2d0a', rim: '#00ff88'}, // Uranium Glass
+      {glass: '#ffffff', detail: '#ffffff', headlight: '#00eaff', spoiler: '#b3e5fc', tire: '#b0b0b0', rim: '#ffffff'}, // Absolute Diamond
+      {glass: '#b2fef7', detail: '#00ffaa', headlight: '#ffd600', spoiler: '#8a2be2', tire: '#0a2d1a', rim: '#00ffaa'}  // Alien Polymer
     ];
     let carColorIndex = 0;
     // Carregar cor do localStorage
@@ -1705,6 +1998,44 @@
       bgMusic.addEventListener('pause', () => {
         if (!bgMusic.ended) setTimeout(() => bgMusic.play(), 200);
       });
+    }
+
+    // --- DRIFT ---
+    let driftActive = false;
+    // Elemento para mostrar o título DRIFT
+    const driftTitle = document.createElement('div');
+    driftTitle.id = 'driftTitle';
+    driftTitle.textContent = 'DRIFT';
+    driftTitle.style.position = 'absolute';
+    // Posição: um pouco acima do gameArea
+    const gameAreaBox = document.getElementById('gameArea');
+    function updateDriftTitlePosition() {
+      const rect = gameAreaBox.getBoundingClientRect();
+      driftTitle.style.left = rect.left + rect.width/2 + 'px';
+      driftTitle.style.top = (rect.top - 32) + 'px';
+      driftTitle.style.transform = 'translate(-50%, 0)';
+    }
+    window.addEventListener('resize', updateDriftTitlePosition);
+    window.addEventListener('scroll', updateDriftTitlePosition);
+    setTimeout(updateDriftTitlePosition, 200); // garantir após render
+    driftTitle.style.fontFamily = "'Orbitron', Arial, sans-serif";
+    driftTitle.style.fontSize = '1.5em';
+    driftTitle.style.fontWeight = 'bold';
+    driftTitle.style.letterSpacing = '6px';
+    driftTitle.style.color = '#ffd600';
+    driftTitle.style.textShadow = '0 2px 12px #000a, 0 2px 16px #000';
+    driftTitle.style.opacity = '0.0';
+    driftTitle.style.transition = 'opacity 0.2s';
+    driftTitle.style.pointerEvents = 'none';
+    driftTitle.style.zIndex = '300';
+    document.body.appendChild(driftTitle);
+    // Atualizar posição sempre que drift ativar
+    function showDriftTitle() {
+      updateDriftTitlePosition();
+      driftTitle.style.opacity = '0.95';
+    }
+    function hideDriftTitle() {
+      driftTitle.style.opacity = '0.0';
     }
   </script>
 </body>
