@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Corrida de Carros</title>
+  <title>Neon Race 2</title>
   <style>
     :root {
       --theme-primary: #00eaff;
@@ -517,27 +517,35 @@
             <stop offset="0%" stop-color="#000a"/>
             <stop offset="100%" stop-color="transparent"/>
           </linearGradient>
+          <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+            <feMerge>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
         </defs>
-        <!-- Sombra -->
-        <ellipse cx="24" cy="76" rx="16" ry="7" fill="url(#carShadow)"/>
         <!-- Pneus finos e rodas iluminadas -->
-        <ellipse cx="12" cy="68" rx="5" ry="7" fill="#222" stroke="#00eaff" stroke-width="2"/>
-        <ellipse cx="36" cy="68" rx="5" ry="7" fill="#222" stroke="#00eaff" stroke-width="2"/>
-        <ellipse cx="12" cy="22" rx="5" ry="7" fill="#222" stroke="#00eaff" stroke-width="2"/>
-        <ellipse cx="36" cy="22" rx="5" ry="7" fill="#222" stroke="#00eaff" stroke-width="2"/>
+        <ellipse cx="12" cy="68" rx="5" ry="7" fill="#181c28" stroke="#00eaff" stroke-width="2" filter="url(#glow)"/>
+        <ellipse cx="36" cy="68" rx="5" ry="7" fill="#181c28" stroke="#00eaff" stroke-width="2" filter="url(#glow)"/>
+        <ellipse cx="12" cy="22" rx="5" ry="7" fill="#181c28" stroke="#00eaff" stroke-width="2" filter="url(#glow)"/>
+        <ellipse cx="36" cy="22" rx="5" ry="7" fill="#181c28" stroke="#00eaff" stroke-width="2" filter="url(#glow)"/>
         <!-- Corpo do carro -->
-        <rect x="8" y="18" width="32" height="44" rx="14" fill="url(#carBodyGradient)" stroke="#fff" stroke-width="2"/>
+        <rect x="8" y="18" width="32" height="44" rx="14" fill="url(#carBodyGradient)" stroke="#fff" stroke-width="2" filter="url(#glow)"/>
         <!-- Para-choque -->
-        <rect x="6" y="60" width="36" height="8" rx="4" fill="#00eaff"/>
+        <rect x="6" y="60" width="36" height="8" rx="4" fill="#00eaff" filter="url(#glow)"/>
         <!-- Detalhe neon central -->
-        <rect x="20" y="18" width="8" height="44" rx="4" fill="#fff" opacity="0.18"/>
+        <rect x="20" y="18" width="8" height="44" rx="4" fill="#fff" opacity="0.22" filter="url(#glow)"/>
         <!-- Faróis -->
-        <ellipse cx="14" cy="16" rx="3" ry="2" fill="#fff"/>
-        <ellipse cx="34" cy="16" rx="3" ry="2" fill="#fff"/>
+        <ellipse cx="14" cy="16" rx="3" ry="2" fill="#fff" filter="url(#glow)"/>
+        <ellipse cx="34" cy="16" rx="3" ry="2" fill="#fff" filter="url(#glow)"/>
         <!-- Vidro -->
-        <rect x="16" y="26" width="16" height="16" rx="6" fill="#b3e5fc" opacity="0.8"/>
+        <rect x="16" y="26" width="16" height="16" rx="6" fill="#b3e5fc" opacity="0.92" filter="url(#glow)"/>
         <!-- Spoiler -->
-        <rect x="10" y="8" width="28" height="6" rx="3" fill="#00eaff"/>
+        <rect x="10" y="8" width="28" height="6" rx="3" fill="#00eaff" filter="url(#glow)"/>
+        <!-- Detalhes extras -->
+        <rect x="18" y="38" width="12" height="6" rx="2" fill="#fff" opacity="0.12"/>
+        <ellipse cx="24" cy="40" rx="6" ry="2" fill="#00eaff" opacity="0.18"/>
       </svg>
       <div class="energy-container"></div>
     </div>
@@ -547,7 +555,7 @@
       <button onclick="restartGame()">Jogar Novamente</button>
     </div>
     <div id="startScreen">
-      <div style="font-size:1.5em; margin-bottom:20px;">Corrida de Carros</div>
+      <div style="font-size:1.5em; margin-bottom:20px;">Neon Race 2</div>
       <div style="font-size:1em; margin-bottom:20px;">Use as setas ← → para virar suavemente.<br>Seta ↑ para acelerar, ↓ para frear.<br>Ultrapasse os rivais, pegue turbos e divirta-se!<br>Pressione qualquer tecla para começar.</div>
       <button onclick="startGame()">Iniciar</button>
     </div>
@@ -841,26 +849,37 @@
             <stop offset='0%' stop-color='#e57373'/>
             <stop offset='100%' stop-color='#b71c1c'/>
           </linearGradient>
+          <filter id='glowNormal' x='-40%' y='-40%' width='180%' height='180%'>
+            <feGaussianBlur stdDeviation='2.5' result='coloredBlur'/>
+            <feMerge>
+              <feMergeNode in='coloredBlur'/>
+              <feMergeNode in='SourceGraphic'/>
+            </feMerge>
+          </filter>
         </defs>
         <!-- Sombra -->
         <ellipse cx='20' cy='66' rx='13' ry='6' fill='#0005'/>
         <!-- Rodas -->
-        <rect x='3' y='10' width='6' height='16' rx='2' fill='#222'/>
-        <rect x='31' y='10' width='6' height='16' rx='2' fill='#222'/>
-        <rect x='3' y='44' width='6' height='16' rx='2' fill='#222'/>
-        <rect x='31' y='44' width='6' height='16' rx='2' fill='#222'/>
+        <rect x='3' y='10' width='6' height='16' rx='2' fill='#222' filter='url(#glowNormal)'/>
+        <rect x='31' y='10' width='6' height='16' rx='2' fill='#222' filter='url(#glowNormal)'/>
+        <rect x='3' y='44' width='6' height='16' rx='2' fill='#222' filter='url(#glowNormal)'/>
+        <rect x='31' y='44' width='6' height='16' rx='2' fill='#222' filter='url(#glowNormal)'/>
         <!-- Corpo -->
-        <rect x='8' y='8' width='24' height='54' rx='8' fill='url(#normalBody)' stroke='#fff' stroke-width='1.5'/>
+        <rect x='8' y='8' width='24' height='54' rx='8' fill='url(#normalBody)' stroke='#fff' stroke-width='1.5' filter='url(#glowNormal)'/>
         <!-- Para-brisa -->
-        <rect x='12' y='12' width='16' height='12' rx='4' fill='#b3e5fc' stroke='#fff' stroke-width='0.7'/>
+        <rect x='12' y='12' width='16' height='12' rx='4' fill='#b3e5fc' stroke='#fff' stroke-width='0.7' filter='url(#glowNormal)'/>
         <!-- Portas -->
         <rect x='13' y='26' width='14' height='22' rx='3' fill='#fff1' stroke='#fff' stroke-width='0.5'/>
         <!-- Faróis -->
-        <ellipse cx='14' cy='10' rx='2' ry='2' fill='#fff'/>
-        <ellipse cx='26' cy='10' rx='2' ry='2' fill='#fff'/>
+        <ellipse cx='14' cy='10' rx='2' ry='2' fill='#fff' filter='url(#glowNormal)'/>
+        <ellipse cx='26' cy='10' rx='2' ry='2' fill='#fff' filter='url(#glowNormal)'/>
         <!-- Lanternas -->
         <ellipse cx='14' cy='62' rx='2' ry='1.2' fill='#ff1744'/>
         <ellipse cx='26' cy='62' rx='2' ry='1.2' fill='#ff1744'/>
+        <!-- Detalhes extras -->
+        <rect x='16' y='36' width='8' height='4' rx='1.5' fill='#fff' opacity='0.10'/>
+        <ellipse cx='20' cy='35' rx='7' ry='2' fill='#e57373' opacity='0.10'/>
+        <rect x='10' y='20' width='20' height='4' rx='2' fill='#fff' opacity='0.08'/>
       </svg>`
       },
       {
@@ -880,34 +899,44 @@
               <stop offset='0%' stop-color='#0008'/>
               <stop offset='100%' stop-color='transparent'/>
             </linearGradient>
+            <filter id='glowSport' x='-40%' y='-40%' width='180%' height='180%'>
+              <feGaussianBlur stdDeviation='2.5' result='coloredBlur'/>
+              <feMerge>
+                <feMergeNode in='coloredBlur'/>
+                <feMergeNode in='SourceGraphic'/>
+              </feMerge>
+            </filter>
           </defs>
           <!-- Sombra -->
           <ellipse cx='22' cy='58' rx='15' ry='5' fill='url(#sportShadow)'/>
           <!-- Rodas -->
-          <ellipse cx='10' cy='12' rx='4' ry='7' fill='#222'/>
-          <ellipse cx='34' cy='12' rx='4' ry='7' fill='#222'/>
-          <ellipse cx='10' cy='50' rx='4' ry='7' fill='#222'/>
-          <ellipse cx='34' cy='50' rx='4' ry='7' fill='#222'/>
+          <ellipse cx='10' cy='12' rx='4' ry='7' fill='#222' filter='url(#glowSport)'/>
+          <ellipse cx='34' cy='12' rx='4' ry='7' fill='#222' filter='url(#glowSport)'/>
+          <ellipse cx='10' cy='50' rx='4' ry='7' fill='#222' filter='url(#glowSport)'/>
+          <ellipse cx='34' cy='50' rx='4' ry='7' fill='#222' filter='url(#glowSport)'/>
           <!-- Corpo principal -->
-          <rect x='7' y='8' width='30' height='46' rx='13' fill='url(#sportBody)' stroke='#222' stroke-width='2'/>
+          <rect x='7' y='8' width='30' height='46' rx='13' fill='url(#sportBody)' stroke='#222' stroke-width='2' filter='url(#glowSport)'/>
           <!-- Faixa preta central -->
           <rect x='19' y='8' width='6' height='46' rx='2.5' fill='#222' opacity='0.95'/>
           <!-- Para-brisa -->
-          <rect x='13' y='14' width='18' height='10' rx='4' fill='#b3e5fc' stroke='#fff' stroke-width='0.7'/>
+          <rect x='13' y='14' width='18' height='10' rx='4' fill='#b3e5fc' stroke='#fff' stroke-width='0.7' filter='url(#glowSport)'/>
           <!-- Teto -->
           <rect x='15' y='26' width='14' height='12' rx='3' fill='#fff2' stroke='#fff' stroke-width='0.5'/>
           <!-- Aerofólio traseiro -->
-          <rect x='10' y='54' width='24' height='5' rx='2.5' fill='#222'/>
-          <rect x='13' y='56' width='18' height='3' rx='1.5' fill='#ffd600'/>
+          <rect x='10' y='54' width='24' height='5' rx='2.5' fill='#222' filter='url(#glowSport)'/>
+          <rect x='13' y='56' width='18' height='3' rx='1.5' fill='#ffd600' filter='url(#glowSport)'/>
           <!-- Faróis -->
-          <ellipse cx='15' cy='10' rx='2' ry='1.2' fill='#fff'/>
-          <ellipse cx='29' cy='10' rx='2' ry='1.2' fill='#fff'/>
+          <ellipse cx='15' cy='10' rx='2' ry='1.2' fill='#fff' filter='url(#glowSport)'/>
+          <ellipse cx='29' cy='10' rx='2' ry='1.2' fill='#fff' filter='url(#glowSport)'/>
           <!-- Lanternas -->
           <ellipse cx='15' cy='54' rx='2' ry='1.2' fill='#ff1744'/>
           <ellipse cx='29' cy='54' rx='2' ry='1.2' fill='#ff1744'/>
           <!-- Detalhes laterais -->
           <rect x='7' y='22' width='4' height='18' rx='2' fill='#222' opacity='0.5'/>
           <rect x='33' y='22' width='4' height='18' rx='2' fill='#222' opacity='0.5'/>
+          <!-- Detalhes extras -->
+          <ellipse cx='22' cy='32' rx='7' ry='2' fill='#fff' opacity='0.10'/>
+          <rect x='14' y='36' width='16' height='4' rx='2' fill='#ffd600' opacity='0.10'/>
         </svg>`
       },
       {
@@ -923,29 +952,39 @@
               <stop offset='0%' stop-color='#ffd600'/>
               <stop offset='100%' stop-color='#ff9800'/>
             </linearGradient>
+            <filter id='glowBus' x='-40%' y='-40%' width='180%' height='180%'>
+              <feGaussianBlur stdDeviation='2.5' result='coloredBlur'/>
+              <feMerge>
+                <feMergeNode in='coloredBlur'/>
+                <feMergeNode in='SourceGraphic'/>
+              </feMerge>
+            </filter>
           </defs>
           <!-- Sombra -->
           <ellipse cx='22' cy='116' rx='18' ry='7' fill='#0005'/>
           <!-- Rodas -->
-          <rect x='2' y='16' width='7' height='18' rx='2' fill='#222'/>
-          <rect x='35' y='16' width='7' height='18' rx='2' fill='#222'/>
-          <rect x='2' y='86' width='7' height='18' rx='2' fill='#222'/>
-          <rect x='35' y='86' width='7' height='18' rx='2' fill='#222'/>
+          <rect x='2' y='16' width='7' height='18' rx='2' fill='#222' filter='url(#glowBus)'/>
+          <rect x='35' y='16' width='7' height='18' rx='2' fill='#222' filter='url(#glowBus)'/>
+          <rect x='2' y='86' width='7' height='18' rx='2' fill='#222' filter='url(#glowBus)'/>
+          <rect x='35' y='86' width='7' height='18' rx='2' fill='#222' filter='url(#glowBus)'/>
           <!-- Corpo -->
-          <rect x='7' y='8' width='30' height='100' rx='10' fill='url(#busBody)' stroke='#fff' stroke-width='2'/>
+          <rect x='7' y='8' width='30' height='100' rx='10' fill='url(#busBody)' stroke='#fff' stroke-width='2' filter='url(#glowBus)'/>
           <!-- Janelas -->
-          <rect x='10' y='14' width='24' height='18' rx='4' fill='#fffde7'/>
-          <rect x='10' y='36' width='24' height='16' rx='3' fill='#b3e5fc'/>
-          <rect x='10' y='54' width='24' height='16' rx='3' fill='#b3e5fc'/>
-          <rect x='10' y='72' width='24' height='16' rx='3' fill='#b3e5fc'/>
+          <rect x='10' y='14' width='24' height='18' rx='4' fill='#fffde7' filter='url(#glowBus)'/>
+          <rect x='10' y='36' width='24' height='16' rx='3' fill='#b3e5fc' filter='url(#glowBus)'/>
+          <rect x='10' y='54' width='24' height='16' rx='3' fill='#b3e5fc' filter='url(#glowBus)'/>
+          <rect x='10' y='72' width='24' height='16' rx='3' fill='#b3e5fc' filter='url(#glowBus)'/>
           <!-- Portas -->
           <rect x='18' y='92' width='8' height='16' rx='2' fill='#fff2' stroke='#fff' stroke-width='0.5'/>
           <!-- Faróis -->
-          <ellipse cx='15' cy='10' rx='2' ry='1.2' fill='#fff'/>
-          <ellipse cx='29' cy='10' rx='2' ry='1.2' fill='#fff'/>
+          <ellipse cx='15' cy='10' rx='2' ry='1.2' fill='#fff' filter='url(#glowBus)'/>
+          <ellipse cx='29' cy='10' rx='2' ry='1.2' fill='#fff' filter='url(#glowBus)'/>
           <!-- Lanternas -->
           <ellipse cx='15' cy='108' rx='2' ry='1.2' fill='#ff1744'/>
           <ellipse cx='29' cy='108' rx='2' ry='1.2' fill='#ff1744'/>
+          <!-- Detalhes extras -->
+          <rect x='14' y='40' width='16' height='6' rx='2' fill='#fff' opacity='0.08'/>
+          <ellipse cx='22' cy='60' rx='10' ry='3' fill='#ffd600' opacity='0.08'/>
         </svg>`
       },
       {
@@ -961,28 +1000,38 @@
               <stop offset='0%' stop-color='#8d6e63'/>
               <stop offset='100%' stop-color='#4e342e'/>
             </linearGradient>
+            <filter id='glowTruck' x='-40%' y='-40%' width='180%' height='180%'>
+              <feGaussianBlur stdDeviation='2.5' result='coloredBlur'/>
+              <feMerge>
+                <feMergeNode in='coloredBlur'/>
+                <feMergeNode in='SourceGraphic'/>
+              </feMerge>
+            </filter>
           </defs>
           <!-- Sombra -->
           <ellipse cx='25' cy='72' rx='18' ry='7' fill='#0005'/>
           <!-- Rodas -->
-          <rect x='4' y='14' width='8' height='16' rx='2' fill='#222'/>
-          <rect x='38' y='14' width='8' height='16' rx='2' fill='#222'/>
-          <rect x='4' y='48' width='8' height='16' rx='2' fill='#222'/>
-          <rect x='38' y='48' width='8' height='16' rx='2' fill='#222'/>
+          <rect x='4' y='14' width='8' height='16' rx='2' fill='#222' filter='url(#glowTruck)'/>
+          <rect x='38' y='14' width='8' height='16' rx='2' fill='#222' filter='url(#glowTruck)'/>
+          <rect x='4' y='48' width='8' height='16' rx='2' fill='#222' filter='url(#glowTruck)'/>
+          <rect x='38' y='48' width='8' height='16' rx='2' fill='#222' filter='url(#glowTruck)'/>
           <!-- Corpo -->
-          <rect x='10' y='10' width='30' height='56' rx='10' fill='url(#truckBody)' stroke='#fff' stroke-width='2'/>
+          <rect x='10' y='10' width='30' height='56' rx='10' fill='url(#truckBody)' stroke='#fff' stroke-width='2' filter='url(#glowTruck)'/>
           <!-- Caçamba -->
-          <rect x='10' y='38' width='30' height='18' rx='4' fill='#a1887f' stroke='#fff' stroke-width='0.7'/>
+          <rect x='10' y='38' width='30' height='18' rx='4' fill='#a1887f' stroke='#fff' stroke-width='0.7' filter='url(#glowTruck)'/>
           <!-- Para-brisa -->
-          <rect x='16' y='14' width='18' height='10' rx='3' fill='#b3e5fc' stroke='#fff' stroke-width='0.7'/>
+          <rect x='16' y='14' width='18' height='10' rx='3' fill='#b3e5fc' stroke='#fff' stroke-width='0.7' filter='url(#glowTruck)'/>
           <!-- Portas -->
           <rect x='18' y='26' width='14' height='18' rx='2' fill='#fff1' stroke='#fff' stroke-width='0.5'/>
           <!-- Faróis -->
-          <ellipse cx='18' cy='12' rx='2' ry='1.2' fill='#fff'/>
-          <ellipse cx='32' cy='12' rx='2' ry='1.2' fill='#fff'/>
+          <ellipse cx='18' cy='12' rx='2' ry='1.2' fill='#fff' filter='url(#glowTruck)'/>
+          <ellipse cx='32' cy='12' rx='2' ry='1.2' fill='#fff' filter='url(#glowTruck)'/>
           <!-- Lanternas -->
           <ellipse cx='18' cy='64' rx='2' ry='1.2' fill='#ff1744'/>
           <ellipse cx='32' cy='64' rx='2' ry='1.2' fill='#ff1744'/>
+          <!-- Detalhes extras -->
+          <rect x='20' y='44' width='10' height='6' rx='2' fill='#fff' opacity='0.10'/>
+          <ellipse cx='25' cy='38' rx='8' ry='2' fill='#8d6e63' opacity='0.10'/>
         </svg>`
       },
       {
@@ -998,22 +1047,31 @@
               <stop offset='0%' stop-color='#f06292'/>
               <stop offset='100%' stop-color='#ad1457'/>
             </linearGradient>
+            <filter id='glowMoto' x='-40%' y='-40%' width='180%' height='180%'>
+              <feGaussianBlur stdDeviation='2' result='coloredBlur'/>
+              <feMerge>
+                <feMergeNode in='coloredBlur'/>
+                <feMergeNode in='SourceGraphic'/>
+              </feMerge>
+            </filter>
           </defs>
           <!-- Sombra -->
           <ellipse cx='11' cy='46' rx='8' ry='3' fill='#0005'/>
           <!-- Rodas -->
-          <ellipse cx='11' cy='10' rx='4' ry='2' fill='#222'/>
-          <ellipse cx='11' cy='38' rx='4' ry='2' fill='#222'/>
+          <ellipse cx='11' cy='10' rx='4' ry='2' fill='#222' filter='url(#glowMoto)'/>
+          <ellipse cx='11' cy='38' rx='4' ry='2' fill='#222' filter='url(#glowMoto)'/>
           <!-- Corpo -->
-          <rect x='7' y='14' width='8' height='18' rx='3' fill='url(#motoBody)' stroke='#fff' stroke-width='1'/>
+          <rect x='7' y='14' width='8' height='18' rx='3' fill='url(#motoBody)' stroke='#fff' stroke-width='1' filter='url(#glowMoto)'/>
           <!-- Banco -->
-          <rect x='9' y='20' width='4' height='8' rx='1.5' fill='#333'/>
+          <rect x='9' y='20' width='4' height='8' rx='1.5' fill='#333' filter='url(#glowMoto)'/>
           <!-- Guidão -->
-          <rect x='4' y='8' width='14' height='2' rx='1' fill='#888'/>
+          <rect x='4' y='8' width='14' height='2' rx='1' fill='#888' filter='url(#glowMoto)'/>
           <!-- Farol -->
-          <ellipse cx='11' cy='8' rx='2' ry='1' fill='#fff'/>
+          <ellipse cx='11' cy='8' rx='2' ry='1' fill='#fff' filter='url(#glowMoto)'/>
           <!-- Lanterna -->
           <ellipse cx='11' cy='34' rx='1.2' ry='0.7' fill='#ff1744'/>
+          <!-- Detalhes extras -->
+          <ellipse cx='11' cy='24' rx='5' ry='1.2' fill='#f06292' opacity='0.10'/>
         </svg>`
       }
     ];
@@ -1029,33 +1087,43 @@
             <stop offset='0%' stop-color='#bdbdbd'/>
             <stop offset='100%' stop-color='#757575'/>
           </linearGradient>
+          <filter id='glowUno' x='-40%' y='-40%' width='180%' height='180%'>
+            <feGaussianBlur stdDeviation='2' result='coloredBlur'/>
+            <feMerge>
+              <feMergeNode in='coloredBlur'/>
+              <feMergeNode in='SourceGraphic'/>
+            </feMerge>
+          </filter>
         </defs>
         <!-- Sombra -->
         <ellipse cx='19' cy='64' rx='13' ry='5' fill='#0005'/>
         <!-- Rodas -->
-        <rect x='2' y='10' width='5' height='14' rx='2' fill='#222'/>
-        <rect x='31' y='10' width='5' height='14' rx='2' fill='#222'/>
-        <rect x='2' y='44' width='5' height='14' rx='2' fill='#222'/>
-        <rect x='31' y='44' width='5' height='14' rx='2' fill='#222'/>
+        <rect x='2' y='10' width='5' height='14' rx='2' fill='#222' filter='url(#glowUno)'/>
+        <rect x='31' y='10' width='5' height='14' rx='2' fill='#222' filter='url(#glowUno)'/>
+        <rect x='2' y='44' width='5' height='14' rx='2' fill='#222' filter='url(#glowUno)'/>
+        <rect x='31' y='44' width='5' height='14' rx='2' fill='#222' filter='url(#glowUno)'/>
         <!-- Corpo do Uno -->
-        <rect x='7' y='8' width='24' height='52' rx='5' fill='url(#unoBody)' stroke='#333' stroke-width='1.2'/>
+        <rect x='7' y='8' width='24' height='52' rx='5' fill='url(#unoBody)' stroke='#333' stroke-width='1.2' filter='url(#glowUno)'/>
         <!-- Para-brisa -->
-        <rect x='11' y='12' width='16' height='10' rx='3' fill='#b3e5fc' stroke='#fff' stroke-width='0.7'/>
+        <rect x='11' y='12' width='16' height='10' rx='3' fill='#b3e5fc' stroke='#fff' stroke-width='0.7' filter='url(#glowUno)'/>
         <!-- Portas -->
         <rect x='12' y='24' width='14' height='20' rx='2' fill='#fff1' stroke='#fff' stroke-width='0.4'/>
         <!-- Faróis -->
-        <ellipse cx='14' cy='10' rx='2' ry='1.2' fill='#fff'/>
-        <ellipse cx='24' cy='10' rx='2' ry='1.2' fill='#fff'/>
+        <ellipse cx='14' cy='10' rx='2' ry='1.2' fill='#fff' filter='url(#glowUno)'/>
+        <ellipse cx='24' cy='10' rx='2' ry='1.2' fill='#fff' filter='url(#glowUno)'/>
         <!-- Lanternas -->
         <ellipse cx='14' cy='58' rx='2' ry='1.2' fill='#ff1744'/>
         <ellipse cx='24' cy='58' rx='2' ry='1.2' fill='#ff1744'/>
         <!-- Escada -->
-        <rect x='16' y='16' width='6' height='36' rx='1.2' fill='#bfa94a' stroke='#8d6e00' stroke-width='0.7'/>
+        <rect x='16' y='16' width='6' height='36' rx='1.2' fill='#bfa94a' stroke='#8d6e00' stroke-width='0.7' filter='url(#glowUno)'/>
         <rect x='16' y='20' width='6' height='2' rx='0.7' fill='#8d6e00'/>
         <rect x='16' y='26' width='6' height='2' rx='0.7' fill='#8d6e00'/>
         <rect x='16' y='32' width='6' height='2' rx='0.7' fill='#8d6e00'/>
         <rect x='16' y='38' width='6' height='2' rx='0.7' fill='#8d6e00'/>
         <rect x='16' y='44' width='6' height='2' rx='0.7' fill='#8d6e00'/>
+        <!-- Detalhes extras -->
+        <rect x='14' y='36' width='10' height='4' rx='1.5' fill='#fff' opacity='0.10'/>
+        <ellipse cx='19' cy='34' rx='8' ry='2' fill='#bdbdbd' opacity='0.10'/>
       </svg>`;
     }
 
@@ -1552,7 +1620,7 @@
 
     // 1. Tela de início minimalista
     startScreen.innerHTML = `
-      <div style="font-size:1.6em;font-weight:bold;letter-spacing:2px;margin-bottom:14px;">Corrida Neon</div>
+      <div style="font-size:1.6em;font-weight:bold;letter-spacing:2px;margin-bottom:14px;">Neon Race 2</div>
       <div style="font-size:1em;margin-bottom:22px;opacity:0.8;">Aperte <b>Jogar</b> ou <b>W</b> para começar<br><span style='font-size:0.9em;opacity:0.7;'>Controles: <b>WASD</b> <span style='font-size:1.1em;'>ou</span> <b>Setas do Teclado</b></span></div>
       <button id="startBtn" style="font-size:1em;padding:10px 32px;border-radius:10px;background:#00eaff;color:#181c28;border:none;box-shadow:0 2px 12px #00eaff33;cursor:pointer;font-family:'Orbitron',Arial,sans-serif;font-weight:bold;">Jogar</button>
     `;
