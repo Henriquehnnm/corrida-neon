@@ -263,12 +263,16 @@
     .pass-line {
       position: absolute;
       width: 10px;
-      height: 36px;
-      background: linear-gradient(180deg, var(--theme-primary) 60%, #000 100%);
-      opacity: 0.8;
+      height: 44px;
+      background: linear-gradient(180deg, #fff 70%, #e0e0e0 100%);
+      opacity: 0.92;
       z-index: 2;
-      border-radius: 6px;
-      box-shadow: 0 0 8px var(--theme-shadow);
+      border-radius: 8px;
+      /* Removido glow e borda */
+      filter: none;
+      box-shadow: none;
+      border: none;
+      transition: background 0.2s;
     }
     /* --- CARROS --- */
     .car, .opponent {
@@ -659,16 +663,33 @@
     }
     drawAnalogSpeedometer();
 
-    // Faixas de ultrapassagem laterais
+    // Faixas de ultrapassagem laterais e centrais
     function createPassLines() {
+      // Laterais
       for (let side = 0; side <= 1; side++) {
-        for (let i = 0; i < 600 / 48; i++) {
+        for (let i = 0; i < 600 / 60; i++) {
           const line = document.createElement('div');
           line.className = 'pass-line';
-          line.style.left = side === 0 ? '24px' : '368px';
-          line.style.top = (i * 48 + 8) + 'px';
+          line.style.left = side === 0 ? '22px' : '368px';
+          line.style.top = (i * 60 + 8) + 'px';
           gameArea.appendChild(line);
         }
+      }
+      // Faixa central cortada, fina e discreta
+      centerSegments = [];
+      for (let i = 0; i < 600 / 56; i++) {
+        const seg = document.createElement('div');
+        seg.style.position = 'absolute';
+        seg.style.left = '199px';
+        seg.style.width = '4px';
+        seg.style.height = '32px';
+        seg.style.top = (i * 56 + 8) + 'px';
+        seg.style.background = 'linear-gradient(180deg, #fff 80%, #e0e0e0 100%)';
+        seg.style.opacity = '0.38';
+        seg.style.borderRadius = '2px';
+        seg.style.zIndex = '2';
+        gameArea.appendChild(seg);
+        centerSegments.push({el: seg, y: i * 56 + 8});
       }
     }
     createPassLines();
@@ -809,6 +830,12 @@
         top += speed;
         if (top > areaHeight) top -= 600;
         passLines[i].style.top = top + 'px';
+      }
+      // Atualizar segmentos centrais
+      for (let i = 0; i < centerSegments.length; i++) {
+        centerSegments[i].y += speed;
+        if (centerSegments[i].y > areaHeight) centerSegments[i].y -= (centerSegments.length * 56);
+        centerSegments[i].el.style.top = centerSegments[i].y + 'px';
       }
     }
 
@@ -1439,20 +1466,51 @@
       let desiredVX = 0;
       if (keys['a']) desiredVX -= maxVX;
       if (keys['d']) desiredVX += maxVX;
-      // Aderência diminui em alta velocidade
+      // Parâmetros de drift
       let currentGrip = grip * (carSpeed < 14 ? 1.2 : 0.5);
+      let currentDriftAmount = driftAmount;
+      let currentLateralInertia = lateralInertia;
+      let driftDecel = 1.0;
+      let driftVisualAngle = 0;
+      // Física realista de drift
+      if (driftActive && carSpeed > 12 && (keys['a'] || keys['d'] || Math.abs(carVX) > 1.5)) {
+        currentGrip *= 0.09; // grip ainda menor
+        currentDriftAmount *= 4.5; // drift super eficiente
+        currentLateralInertia = 0.995; // desliza muito mais
+        driftDecel = 0.997; // quase não desacelera
+        // Ângulo visual de drift proporcional ao carVX
+        driftVisualAngle = Math.max(-28, Math.min(28, -carVX * 2.5));
+      }
       // Drift mais fácil em alta velocidade
       if ((keys['a'] || keys['d']) && carSpeed > 12) {
-        carVX += driftAmount * (desiredVX > 0 ? 1 : -1) * dt * (carSpeed / maxSpeed);
+        carVX += currentDriftAmount * (desiredVX > 0 ? 1 : -1) * dt * (carSpeed / maxSpeed);
         currentGrip *= 0.7;
       }
       // Inércia lateral
       carVX += (desiredVX - carVX) * currentGrip * dt;
-      carVX *= lateralInertia;
+      carVX *= currentLateralInertia;
       // Recuperação lateral suave
       if (!keys['a'] && !keys['d']) {
-        carVX *= (1 - 0.09 * dt);
-        if (Math.abs(carVX) < 0.1) carVX = 0;
+        // Efeito cauda: recuperação ainda mais lenta
+        carVX *= (1 - 0.012 * dt);
+        if (Math.abs(carVX) < 0.08) carVX = 0;
+      }
+      // Menos desaceleração durante drift
+      if (driftActive && carSpeed > 12 && (keys['a'] || keys['d'] || Math.abs(carVX) > 1.5)) {
+        carSpeed *= driftDecel;
+      }
+      // --- Animação visual de drift (carro "andando de lado") ---
+      let tilt = carVX / maxVX * 18;
+      let driftAngle = 0;
+      if (driftActive && carSpeed > 12 && (keys['a'] || keys['d'])) {
+        driftAngle = driftVisualAngle;
+      }
+      // Tremida em velocidade máxima
+      if (carSpeed > maxSpeed - 1) {
+        const shake = Math.sin(Date.now() / 40) * 2;
+        playerCar.style.transform = `rotate(${tilt + driftAngle + shake}deg)`;
+      } else {
+        playerCar.style.transform = `rotate(${tilt + driftAngle}deg)`;
       }
       // Limites laterais
       if (carVX > maxVX) carVX = maxVX;
@@ -1585,6 +1643,11 @@
       if (e.key === 'ArrowLeft') key = 'a';
       if (e.key === 'ArrowRight') key = 'd';
       keys[key] = true;
+      // Ativar drift com Shift
+      if (e.key === 'Shift' || e.key === 'ShiftLeft' || e.key === 'ShiftRight') {
+        driftActive = true;
+        showDriftTitle();
+      }
       if (!gameRunning && startScreen.style.display !== 'none') {
         startGame();
         return;
@@ -1608,6 +1671,11 @@
       if (e.key === 'ArrowLeft') key = 'a';
       if (e.key === 'ArrowRight') key = 'd';
       keys[key] = false;
+      // Desativar drift ao soltar Shift
+      if (e.key === 'Shift' || e.key === 'ShiftLeft' || e.key === 'ShiftRight') {
+        driftActive = false;
+        hideDriftTitle();
+      }
       // Ao soltar W, desacelerar até rolagem
       if (key === 'w') {
         if (!keys['s']) carSpeedTarget = rollingSpeed;
@@ -1621,7 +1689,11 @@
     // 1. Tela de início minimalista
     startScreen.innerHTML = `
       <div style="font-size:1.6em;font-weight:bold;letter-spacing:2px;margin-bottom:14px;">Neon Race</div>
-      <div style="font-size:1em;margin-bottom:22px;opacity:0.8;">Aperte <b>Jogar</b> ou <b>W</b> para começar<br><span style='font-size:0.9em;opacity:0.7;'>Controles: <b>WASD</b> <span style='font-size:1.1em;'>ou</span> <b>Setas do Teclado</b></span></div>
+      <div style="font-size:1em;margin-bottom:22px;opacity:0.95;color:#fff;text-align:center;">
+        Aperte <b>Jogar</b> ou <b>W</b> para começar<br>
+        <span style='font-size:0.9em;opacity:0.85;'>Controles: <b>WASD</b> <span style='font-size:1.1em;'>ou</span> <b>Setas do Teclado</b></span><br>
+        <span style='font-size:0.98em;display:inline-block;margin-top:10px;letter-spacing:1px;'><b>Segure Shift para fazer <span style="color:#ffd600;text-shadow:0 2px 8px #000a;">DRIFT</span> nas curvas!</b></span>
+      </div>
       <button id="startBtn" style="font-size:1em;padding:10px 32px;border-radius:10px;background:#00eaff;color:#181c28;border:none;box-shadow:0 2px 12px #00eaff33;cursor:pointer;font-family:'Orbitron',Arial,sans-serif;font-weight:bold;">Jogar</button>
     `;
     startScreen.style.background = 'rgba(10,16,24,0.92)';
@@ -1926,6 +1998,44 @@
       bgMusic.addEventListener('pause', () => {
         if (!bgMusic.ended) setTimeout(() => bgMusic.play(), 200);
       });
+    }
+
+    // --- DRIFT ---
+    let driftActive = false;
+    // Elemento para mostrar o título DRIFT
+    const driftTitle = document.createElement('div');
+    driftTitle.id = 'driftTitle';
+    driftTitle.textContent = 'DRIFT';
+    driftTitle.style.position = 'absolute';
+    // Posição: um pouco acima do gameArea
+    const gameAreaBox = document.getElementById('gameArea');
+    function updateDriftTitlePosition() {
+      const rect = gameAreaBox.getBoundingClientRect();
+      driftTitle.style.left = rect.left + rect.width/2 + 'px';
+      driftTitle.style.top = (rect.top - 32) + 'px';
+      driftTitle.style.transform = 'translate(-50%, 0)';
+    }
+    window.addEventListener('resize', updateDriftTitlePosition);
+    window.addEventListener('scroll', updateDriftTitlePosition);
+    setTimeout(updateDriftTitlePosition, 200); // garantir após render
+    driftTitle.style.fontFamily = "'Orbitron', Arial, sans-serif";
+    driftTitle.style.fontSize = '1.5em';
+    driftTitle.style.fontWeight = 'bold';
+    driftTitle.style.letterSpacing = '6px';
+    driftTitle.style.color = '#ffd600';
+    driftTitle.style.textShadow = '0 2px 12px #000a, 0 2px 16px #000';
+    driftTitle.style.opacity = '0.0';
+    driftTitle.style.transition = 'opacity 0.2s';
+    driftTitle.style.pointerEvents = 'none';
+    driftTitle.style.zIndex = '300';
+    document.body.appendChild(driftTitle);
+    // Atualizar posição sempre que drift ativar
+    function showDriftTitle() {
+      updateDriftTitlePosition();
+      driftTitle.style.opacity = '0.95';
+    }
+    function hideDriftTitle() {
+      driftTitle.style.opacity = '0.0';
     }
   </script>
 </body>
