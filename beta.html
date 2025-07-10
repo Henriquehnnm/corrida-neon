@@ -1645,55 +1645,58 @@
 
     // --- CORES DISPONÍVEIS ---
     const carColors = [
-      // Lendárias aprimoradas:
+      // Lendárias originais:
       {grad1: '#ffe066', grad2: '#bfa94a'}, // Dourado Supremo
       {grad1: '#e5e4e2', grad2: '#b3c6ff'}, // Platina Neon
-      {grad1: '#ff0080', grad2: '#00ffe7'}, // Arco-Íris
+      {grad1: '#ff0080', grad2: '#00ffe7'}, // Another Planet
       {grad1: '#181c28', grad2: '#00eaff'}, // Preto Ônix com Neon Azul
-      {grad1: '#8e0057', grad2: '#ffb3e6'}, // Royal Magenta
-      {grad1: '#d0ff00', grad2: '#00ff6a'}, // ElectroLight
-      {grad1: '#3ec6cf', grad2: '#b2fefa'}, // Sea Glass
-      {grad1: '#b08d57', grad2: '#ffd700'}, // Sahara Bronze
-      {grad1: '#43464b', grad2: '#b0b7c6'}, // Gallant Gray
-      {grad1: '#0057b8', grad2: '#00eaff'}, // Brilliant Blue
-      {grad1: '#fff700', grad2: '#ffb300'}, // Giallo Inti
-      {grad1: '#0b6623', grad2: '#00ff99'}, // Verde Selvans
-      {grad1: '#b00020', grad2: '#ff1744'}, // Rosso Efesto
-      {grad1: '#232323', grad2: '#444444'}  // Nero Nemesis
+      {grad1: '#b87333', grad2: '#4a7c59'}, // Oxidized Copper
+      {grad1: '#9966cc', grad2: '#4a148c'}, // Amethyst Mystery
+      {grad1: '#ff1744', grad2: '#ff6f00'}, // Red Meteor
+      {grad1: '#b3e5fc', grad2: '#ffffff'}, // Icy Crystal
+      {grad1: '#c0c0c0', grad2: '#1a1a2d'}, // Silver of the Night
+      {grad1: '#00e676', grad2: '#181818'}, // Verdant Eclipse
+      {grad1: '#ffb3d9', grad2: '#1a1a1a'}, // Midnight Sakura
+      {grad1: '#a8a8a8', grad2: '#0066ff'}, // Titanium Core
+      {grad1: '#00ff88', grad2: '#ffff00'}, // Uranium Glass
+      {grad1: '#ffffff', grad2: '#b3e5fc'}, // Absolute Diamond
+      {grad1: '#00ffaa', grad2: '#8a2be2'}  // Alien Polymer
     ];
-    // Temas aprimorados para cada cor
+    // Temas para as cores lendárias
     const themeColors = [
       {primary: '#ffe066', secondary: '#bfa94a', highlight: '#fff', bg: '#2d2600', shadow: '#ffe06644'}, // Dourado Supremo
       {primary: '#b3c6ff', secondary: '#e5e4e2', highlight: '#00eaff', bg: '#232a3a', shadow: '#b3c6ff44'}, // Platina Neon
-      {primary: '#ff0080', secondary: '#00ffe7', highlight: '#ffd600', bg: '#1a1a2d', shadow: '#ff008044'}, // Arco-Íris
+      {primary: '#ff0080', secondary: '#00ffe7', highlight: '#ffd600', bg: '#1a1a2d', shadow: '#ff008044'}, // Another Planet
       {primary: '#00eaff', secondary: '#181c28', highlight: '#ffd600', bg: '#181c28', shadow: '#00eaff44'}, // Preto Ônix com Neon Azul
-      {primary: '#8e0057', secondary: '#ffb3e6', highlight: '#fff', bg: '#2d102d', shadow: '#8e005744'}, // Royal Magenta
-      {primary: '#d0ff00', secondary: '#00ff6a', highlight: '#fff', bg: '#1a2d1a', shadow: '#d0ff0044'}, // ElectroLight
-      {primary: '#3ec6cf', secondary: '#b2fefa', highlight: '#fff', bg: '#1a2d2d', shadow: '#3ec6cf44'}, // Sea Glass
-      {primary: '#b08d57', secondary: '#ffd700', highlight: '#fff', bg: '#2d2100', shadow: '#b08d5744'}, // Sahara Bronze
-      {primary: '#43464b', secondary: '#b0b7c6', highlight: '#00eaff', bg: '#23232a', shadow: '#43464b44'}, // Gallant Gray
-      {primary: '#0057b8', secondary: '#00eaff', highlight: '#ffd600', bg: '#0a1a2d', shadow: '#0057b844'}, // Brilliant Blue
-      {primary: '#fff700', secondary: '#ffb300', highlight: '#fff', bg: '#2d2a00', shadow: '#fff70044'}, // Giallo Inti
-      {primary: '#0b6623', secondary: '#00ff99', highlight: '#ffd600', bg: '#102d1a', shadow: '#0b662344'}, // Verde Selvans
-      {primary: '#b00020', secondary: '#ff1744', highlight: '#fff', bg: '#2d1010', shadow: '#b0002044'}, // Rosso Efesto
-      {primary: '#232323', secondary: '#444444', highlight: '#ffd600', bg: '#181818', shadow: '#23232344'}  // Nero Nemesis
+      {primary: '#b87333', secondary: '#4a7c59', highlight: '#ffd600', bg: '#2d1a0a', shadow: '#b8733344'}, // Oxidized Copper
+      {primary: '#9966cc', secondary: '#4a148c', highlight: '#ffd600', bg: '#1a0a2d', shadow: '#9966cc44'}, // Amethyst Mystery
+      {primary: '#ff1744', secondary: '#ff6f00', highlight: '#ffd600', bg: '#2d1010', shadow: '#ff174444'}, // Red Meteor
+      {primary: '#b3e5fc', secondary: '#ffffff', highlight: '#00eaff', bg: '#1a2d2d', shadow: '#b3e5fc44'}, // Icy Crystal
+      {primary: '#c0c0c0', secondary: '#1a1a2d', highlight: '#00eaff', bg: '#1a1a2d', shadow: '#c0c0c044'}, // Silver of the Night
+      {primary: '#00e676', secondary: '#181818', highlight: '#ffd600', bg: '#0a1a0a', shadow: '#00e67644'}, // Verdant Eclipse
+      {primary: '#ffb3d9', secondary: '#1a1a1a', highlight: '#ffd600', bg: '#1a0a1a', shadow: '#ffb3d944'}, // Midnight Sakura
+      {primary: '#a8a8a8', secondary: '#0066ff', highlight: '#00eaff', bg: '#1a1a2d', shadow: '#a8a8a844'}, // Titanium Core
+      {primary: '#00ff88', secondary: '#ffff00', highlight: '#fff', bg: '#0a2d0a', shadow: '#00ff8844'}, // Uranium Glass
+      {primary: '#ffffff', secondary: '#b3e5fc', highlight: '#00eaff', bg: '#1a2d2d', shadow: '#ffffff44'}, // Absolute Diamond
+      {primary: '#00ffaa', secondary: '#8a2be2', highlight: '#ffd600', bg: '#0a2d1a', shadow: '#00ffaa44'}  // Alien Polymer
     ];
-    // Paleta de elementos aprimorada para cada cor
+    // Paleta de elementos para as cores lendárias
     const carElementPalettes = [
       {glass: '#fffbe6', detail: '#fff', headlight: '#fff', spoiler: '#bfa94a', tire: '#bfa94a', rim: '#ffe066'}, // Dourado Supremo
       {glass: '#b3c6ff', detail: '#e5e4e2', headlight: '#fff', spoiler: '#b3c6ff', tire: '#222', rim: '#b3c6ff'}, // Platina Neon
-      {glass: '#fff', detail: '#ff0080', headlight: '#ffd600', spoiler: '#00ffe7', tire: '#222', rim: '#ff0080'}, // Arco-Íris
+      {glass: '#fff', detail: '#ff0080', headlight: '#ffd600', spoiler: '#00ffe7', tire: '#222', rim: '#ff0080'}, // Another Planet
       {glass: '#b3e5fc', detail: '#fff', headlight: '#fff', spoiler: '#00eaff', tire: '#222', rim: '#00eaff'}, // Preto Ônix com Neon Azul
-      {glass: '#ffb3e6', detail: '#fff', headlight: '#fff', spoiler: '#8e0057', tire: '#8e0057', rim: '#ffb3e6'}, // Royal Magenta
-      {glass: '#eaffb3', detail: '#fff', headlight: '#fff', spoiler: '#00ff6a', tire: '#222', rim: '#d0ff00'}, // ElectroLight
-      {glass: '#b2fefa', detail: '#fff', headlight: '#fff', spoiler: '#3ec6cf', tire: '#222', rim: '#3ec6cf'}, // Sea Glass
-      {glass: '#fffbe6', detail: '#b08d57', headlight: '#fff', spoiler: '#ffd700', tire: '#bfa94a', rim: '#ffd700'}, // Sahara Bronze
-      {glass: '#b0b7c6', detail: '#43464b', headlight: '#00eaff', spoiler: '#b0b7c6', tire: '#222', rim: '#43464b'}, // Gallant Gray
-      {glass: '#b3e5fc', detail: '#0057b8', headlight: '#ffd600', spoiler: '#00eaff', tire: '#222', rim: '#0057b8'}, // Brilliant Blue
-      {glass: '#fff', detail: '#fff700', headlight: '#fff', spoiler: '#ffb300', tire: '#bfa94a', rim: '#fff700'}, // Giallo Inti
-      {glass: '#b2fefa', detail: '#0b6623', headlight: '#ffd600', spoiler: '#00ff99', tire: '#222', rim: '#0b6623'}, // Verde Selvans
-      {glass: '#ffb3b3', detail: '#b00020', headlight: '#fff', spoiler: '#ff1744', tire: '#222', rim: '#b00020'}, // Rosso Efesto
-      {glass: '#e0e0e0', detail: '#232323', headlight: '#ffd600', spoiler: '#444444', tire: '#222', rim: '#444444'}  // Nero Nemesis
+      {glass: '#e6d7c3', detail: '#b87333', headlight: '#ffd600', spoiler: '#4a7c59', tire: '#8b4513', rim: '#b87333'}, // Oxidized Copper
+      {glass: '#e1bee7', detail: '#9966cc', headlight: '#ffd600', spoiler: '#4a148c', tire: '#4a148c', rim: '#9966cc'}, // Amethyst Mystery
+      {glass: '#ffb3b3', detail: '#ff1744', headlight: '#ffd600', spoiler: '#ff6f00', tire: '#8b0000', rim: '#ff1744'}, // Red Meteor
+      {glass: '#ffffff', detail: '#b3e5fc', headlight: '#00eaff', spoiler: '#ffffff', tire: '#b0b0b0', rim: '#b3e5fc'}, // Icy Crystal
+      {glass: '#e0e0e0', detail: '#c0c0c0', headlight: '#00eaff', spoiler: '#1a1a2d', tire: '#444444', rim: '#c0c0c0'}, // Silver of the Night
+      {glass: '#b2fef7', detail: '#00e676', headlight: '#ffd600', spoiler: '#181818', tire: '#0a1a0a', rim: '#00e676'}, // Verdant Eclipse
+      {glass: '#ffe6f2', detail: '#ffb3d9', headlight: '#ffd600', spoiler: '#1a1a1a', tire: '#2d0a1a', rim: '#ffb3d9'}, // Midnight Sakura
+      {glass: '#d0d0d0', detail: '#a8a8a8', headlight: '#00eaff', spoiler: '#0066ff', tire: '#444444', rim: '#a8a8a8'}, // Titanium Core
+      {glass: '#b2fef7', detail: '#00ff88', headlight: '#ffff00', spoiler: '#ffff00', tire: '#0a2d0a', rim: '#00ff88'}, // Uranium Glass
+      {glass: '#ffffff', detail: '#ffffff', headlight: '#00eaff', spoiler: '#b3e5fc', tire: '#b0b0b0', rim: '#ffffff'}, // Absolute Diamond
+      {glass: '#b2fef7', detail: '#00ffaa', headlight: '#ffd600', spoiler: '#8a2be2', tire: '#0a2d1a', rim: '#00ffaa'}  // Alien Polymer
     ];
     let carColorIndex = 0;
     // Carregar cor do localStorage
